@@ -189,3 +189,9 @@
 ### 外部图像来源
 
 缩略图中的 Emoji 表情来自于 Openmoji (CC-BY-SA 4.0)，图元的图片来自于 *Biological network comparison using graphlet degree distribution* (Pržulj, 2007)。
+
+<hr>
+
+>>>> 英文原文: <url> https://huggingface.co/blog/intro-graphml </url>
+>>>>
+>>>> 译者: Matrix Yao (姚伟峰)
