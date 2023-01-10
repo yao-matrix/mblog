@@ -1,4 +1,4 @@
-# 使用 DeepSpeed 和 Accelerate 进行超快 BLOOM 模型推理
+# 使用 DeepSpeed 和 Accelerate 运行超快 BLOOM 模型推理
 
 本文展示了如何使用 1760 亿（176B）参数的 [BLOOM 模型](https://huggingface.co/bigscience/bloom) 生成文本时如何获得超快的词吞吐（per token throughput）。
 
