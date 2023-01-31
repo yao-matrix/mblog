@@ -194,4 +194,4 @@
 
 >>>> 英文原文: <url> https://huggingface.co/blog/intro-graphml </url>
 >>>>
->>>> 译者: Matrix Yao (姚伟峰)
+>>>> 译者: Matrix Yao (姚伟峰)，英特尔深度学习工程师，工作方向为 transformer-family 模型在各模态数据上的应用及大规模模型的训练推理。
