@@ -6,9 +6,7 @@
 
 毫无疑问，该工作对于机器学习工程来讲是一个令人印象深刻的能力展示，表明我们的工程能力已经能够训练如此巨大的模型。然而，我们应该为这种超级模型的趋势感到兴奋吗？我个人倾向于否定的回答。我将在通过本文阐述我的理由。
 
-<kbd>
-  <img src="assets/33_large_language_models/01_model_size.jpg">
-</kbd>
+![](assets/33_large_language_models/01_model_size.jpg)
 
 ### 这是你的深度学习大脑
 
@@ -56,9 +54,7 @@ BERT-Large 有 3.4 亿个参数。我们可以通过此推断 Megatron-Turing �
 
 [Big Science](https://bigscience.huggingface.co/) 项目的最新模型也令人印象深刻。下面这张来自于 [论文](https://arxiv.org/abs/2110.08207) 的图表明，他们的 T0 模型在许多任务上都优于 GPT-3，同时尺寸小 16 倍。你可以 [这儿](https://huggingface.co/bigscience/T0pp) 尝试 T0。
 
-<kbd>
-  <img src="assets/33_large_language_models/02_t0.png">
-</kbd>
+![](assets/33_large_language_models/02_t0.png)
 
 我们需要更多的此类研究！
 

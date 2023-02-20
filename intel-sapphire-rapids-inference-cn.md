@@ -135,9 +135,7 @@ for model in models:
 
 为简洁起见，我们先看下 [distilbert-base-uncased](https://huggingface.co/distilbert-base-uncased) 的 p99 结果。你可以在文章末尾找到所有测例的完整结果。
 
-<kbd>
-  <img src="assets/129_intel_sapphire_rapids_inference/01.png">
-</kbd>
+![](assets/129_intel_sapphire_rapids_inference/01.png)
 
 如上图所示，与上一代至强 CPU 相比，Sapphire Rapids 上单个句子的预测延迟加速了 **60-65%**。也就是说，由于结合了英特尔 Sapphire Rapids 平台以及 Hugging Face Optimum 的优化，你只需对代码进行很少改动就可将预测速度提高 3 倍。
 
@@ -160,12 +158,11 @@ for model in models:
 
 ## 附录：完整结果
 
-<kbd>
-  <img src="assets/129_intel_sapphire_rapids_inference/02.png">
-</kbd>
+![](assets/129_intel_sapphire_rapids_inference/02.png)
 
 * 基准测试软件环境：Ubuntu 22.04 with libtcmalloc, Linux 5.15.0 patched for Intel AMX support, PyTorch 1.13 with Intel Extension for PyTorch, Transformers 4.25.1, Optimum 1.6.1, Optimum Intel 1.7.0.dev0*
 
->>>> 英文原文: <url> https://huggingface.co/blog/intel-sapphire-rapids-inference </url>
->>>>
->>>> 译者: Matrix Yao (姚伟峰)，英特尔深度学习工程师，工作方向为 transformer-family 模型在各模态数据上的应用及大规模模型的训练推理。
+
+> 英文原文: <url> https://huggingface.co/blog/intel-sapphire-rapids-inference </url>
+>
+> 译者: Matrix Yao (姚伟峰)，英特尔深度学习工程师，工作方向为 transformer-family 模型在各模态数据上的应用及大规模模型的训练推理。
