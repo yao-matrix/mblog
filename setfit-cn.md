@@ -146,6 +146,6 @@ trainer.push_to_hub ("my-awesome-setfit-model")
 
 少样本学习快乐！
 
->>>> 英文原文: <url> https://huggingface.co/blog/setfit </url>
->>>>
->>>> 译者: Matrix Yao (姚伟峰)，英特尔深度学习工程师，工作方向为 transformer-family 模型在各模态数据上的应用及大规模模型的训练推理。
+> 英文原文: <url> https://huggingface.co/blog/setfit </url>
+>
+> 译者: Matrix Yao (姚伟峰)，英特尔深度学习工程师，工作方向为 transformer-family 模型在各模态数据上的应用及大规模模型的训练推理。

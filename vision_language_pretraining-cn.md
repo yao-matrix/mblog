@@ -301,6 +301,6 @@ ax [0].imshow (image)
 
 *致谢：我们感谢 Amanpreet Singh 和 Amy Roberts 的严格审查。此外，还要感谢 Niels Rogge、Younes Belkada 和 Suraj Patil，以及 Hugging Face 的许多其他人，他们为促进基于 Transformers 的多模态模型的使用奠定了基础。*
 
->>>> 英文原文: <url> https://huggingface.co/blog/vision_language_pretraining </url>
->>>>
->>>> 译者: Matrix Yao (姚伟峰)，英特尔深度学习工程师，工作方向为 transformer-family 模型在各模态数据上的应用及大规模模型的训练推理。
+> 英文原文: <url> https://huggingface.co/blog/vision_language_pretraining </url>
+>
+> 译者: Matrix Yao (姚伟峰)，英特尔深度学习工程师，工作方向为 transformer-family 模型在各模态数据上的应用及大规模模型的训练推理。

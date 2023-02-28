@@ -261,6 +261,6 @@ scores, retrieved_examples = dataset_with_embeddings.get_nearest_examples (
 * [ScaNN：高效向量相似性搜索](http://ai.googleblog.com/2020/07/announcing-scann-efficient-vector.html)
 * [在移动应用程序中集成图像搜索引擎](https://www.tensorflow.org/lite/inference_with_metadata/task_library/image_searcher)
 
->>>> 英文原文: <url> https://huggingface.co/blog/dialog-agents </url>
->>>>
->>>> 译者: Matrix Yao (姚伟峰)，英特尔深度学习工程师，工作方向为 transformer-family 模型在各模态数据上的应用及大规模模型的训练推理。
+> 英文原文: <url> https://huggingface.co/blog/dialog-agents </url>
+>
+> 译者: Matrix Yao (姚伟峰)，英特尔深度学习工程师，工作方向为 transformer-family 模型在各模态数据上的应用及大规模模型的训练推理。
