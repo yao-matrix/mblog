@@ -1,3 +1,12 @@
+---
+title: "蛋白质深度学习" 
+thumbnail: /blog/assets/119_deep_learning_with_proteins/folding_example.png
+authors:
+- user: rocketknight1
+translators:
+- user: MatrixYao
+---
+
 # 蛋白质深度学习
 
 本文的目标读者主要有两类：一类是想使用机器学习的生物学家，一类是想进入生物学领域的机器学习研究者。如果你不熟悉生物学或机器学习，我们仍然欢迎你，但有时你可能会觉得有点读不太懂！如果你已经熟悉这两者，那么你可能根本不需要本文 —— 你可以直接跳到我们的示例 notebook 以查看这些模型的实际应用：
