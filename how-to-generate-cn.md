@@ -387,10 +387,10 @@ tf.random.set_seed(0)
 # set top_k = 50 and set top_p = 0.95 and num_return_sequences = 3
 sample_outputs = model.generate(
     input_ids,
-    do_sample=True, 
-    max_length=50, 
-    top_k=50, 
-    top_p=0.95, 
+    do_sample=True,
+    max_length=50,
+    top_k=50,
+    top_p=0.95,
     num_return_sequences=3
 )
 
@@ -438,7 +438,7 @@ Output:
 
   - `min_length` 用于强制模型在达到 `min_length` 之前不生成 EOS。这在摘要场景中使用得比较多，但如果用户想要更长的文本输出，也会很有用。
 
-  - `repetition_penalty` 可用于对生成重复的单词这一行为进行惩罚。它首先由 [Keskar 等人（2019）](https://arxiv.org/abs/1909.05858)引入，在 [Welleck 等人（2019）](https://arxiv.org/pdf/1908.04319.pdf) 的工作中，它是训练目标的一部分。它可以非常有效地防止重复，但似乎对模型和用户场景非常敏感，一个例子是在 Github 上的[讨论](https://github.com/huggingface/transformers/pull/2303)。
+  - `repetition_penalty` 可用于对生成重复的单词这一行为进行惩罚。它首先由 [Keskar 等人（2019）](https://arxiv.org/abs/1909.05858)引入，在 [Welleck 等人（2019）](https://arxiv.org/pdf/1908.04319.pdf) 的工作中，它是训练目标的一部分。它可以非常有效地防止重复，但似乎对模型和用户场景非常敏感，其中一个例子见 Github 上的[讨论](https://github.com/huggingface/transformers/pull/2303)。
 
   - `attention_mask` 可用于屏蔽填充符。
 
