@@ -26,7 +26,7 @@ translators:
 
 $$ P(w_{1:T} | W_0 ) = \prod_{t=1}^T P(w_{t} | w_{1: t-1}, W_0) \text{ , 其中 }  w_{1: 0} = \emptyset, $$
 
-上式中，$W_0$ 是初始*上下文*单词序列。文本序列的长度 $T$ 通常时变的，并且对应于时间步 $t=T$。$P(w_{t} | w_{1: t- 1}, W_{0})$ 的词表中已包含 终止符(End Of Sequence，EOS) 。
+上式中，$W_0$ 是初始*上下文*单词序列。文本序列的长度 $T$ 通常是即时确定的，它一般等于 $P(w_{t} | w_{1: t- 1}, W_{0})$ 产生终止符(End Of Sequence，EOS) 的时刻。
 
 `transformers` 目前已支持的自回归语言生成任务包括 `GPT2`、`XLNet`、`OpenAi-GPT`、`CTRL`、`TransfoXL`、`XLM`、`Bart`、`T5` 模型，并支持 PyTorch 和 TensorFlow（>= 2.0）两种框架！
 
@@ -89,13 +89,12 @@ print(tokenizer.decode(greedy_output[0], skip_special_tokens=True))
 
 幸好我们可以用波束搜索来缓解这个问题！
 
-
 ### 波束搜索
 波束搜索通过在每个时间步保留最可能的 `num_beams` 个词，并从中最终选择出概率最高的序列来降低丢失潜在的高概率序列的风险。以 `num_beams=2` 为例：
 
 <img src="assets/02_how-to-generate/beam_search.png" alt="beam search" style="margin: auto; display: block;">
 
-在时间步 1，除了最有可能的假设 $(\text{"The"}, \text{"nice"})$，波束搜索还跟踪第二可能的假设 $(\ text{"The"}, \text{"dog"})$。在时间步 2，波束搜索发现序列 $(\text{"The"}, \text{"dog"}, \text{"has"})$ 概率为$0.36$，比 $(\text{"The"}, \text{"nice"}, \text{"woman"})$ 的 $0.2$更高。太棒了，在我们的例子中它已经找到了最有可能的序列！
+在时间步 1，除了最有可能的假设 $(\text{"The"}, \text{"nice"})$，波束搜索还跟踪第二可能的假设 $(\ text{"The"}, \text{"dog"})$。在时间步 2，波束搜索发现序列 $(\text{"The"}, \text{"dog"}, \text{"has"})$ 概率为 $0.36$，比 $(\text{"The"}, \text{"nice"}, \text{"woman"})$ 的 $0.2$ 更高。太棒了，在我们的例子中它已经找到了最有可能的序列！
 
 波束搜索一般都会找到比贪心搜索概率更高的输出序列，但仍不保证找到全局最优解。
 
@@ -124,9 +123,9 @@ print(tokenizer.decode(beam_output[0], skip_special_tokens=True))
 
 </div>
 
-虽然结果比贪心搜索更流畅，但输出中仍然包含重复。一个简单的补救措施是引入 *n-grams*（即连续 n 个词的词序列）惩罚，该方法是由 [Paulus 等人 (2017)](https://arxiv.org/abs/1705.04304) 和 [Klein等人 (2017)](https://arxiv.org/abs/1701.02810) 引入的。最常见的 *n-grams* 惩罚是确保每个 *n-gram* 都只出现一次，方法是如果看到当前候选词与其上文所组成的 *n-gram* 已经出现过了，就将该候选词的概率设置为 0。
+虽然结果比贪心搜索更流畅，但输出中仍然包含重复。一个简单的补救措施是引入 *n-元组（n-grams）*（即连续 n 个词的词序列）惩罚，该方法是由 [Paulus 等人 (2017)](https://arxiv.org/abs/1705.04304) 和 [Klein等人 (2017)](https://arxiv.org/abs/1701.02810) 引入的。最常见的 *n-元组* 惩罚是确保每个 *n-元组* 都只出现一次，方法是如果看到当前候选词与其上文所组成的 *n-元组* 已经出现过了，就将该候选词的概率设置为 0。
 
-我们可以通过设置 `no_repeat_ngram_size=2` 来试试，这样任意 *2-gram* 不会出现两次：
+我们可以通过设置 `no_repeat_ngram_size=2` 来试试，这样任意 *2-元组* 不会出现两次：
 
 ``` python
 # set no_repeat_ngram_size to 2
@@ -152,7 +151,7 @@ print(tokenizer.decode(beam_output[0], skip_special_tokens=True))
 
 </div>
 
-不错，看起来好多了！我们看到生成的文本已经没有重复了。但是，*n-gram* 惩罚使用时必须谨慎，如一篇关于 *纽约* 这个城市的文章就不应使用 *2-gram* 惩罚，否则，城市名称在整个文本中将只出现一次！
+不错，看起来好多了！我们看到生成的文本已经没有重复了。但是，*n-元组* 惩罚使用时必须谨慎，如一篇关于 *纽约* 这个城市的文章就不应使用 *2-元组* 惩罚，否则，城市名称在整个文本中将只出现一次！
 
 波束搜索的另一个重要特性是我们能够比较概率最高的几个波束，并选择最符合我们要求的波束作为最终生成文本。
 
@@ -200,13 +199,13 @@ for i, beam_output in enumerate(beam_outputs):
 如我们所见，五个波束彼此之间仅有少量差别 —— 这在仅使用 5 个波束时不足为奇。
 
 开放域文本生成的研究人员最近提出了几个理由来说明对该领域而言波束搜索可能不是最佳方案：
-  - 在机器翻译或摘要等任务中，因为所需生成的长度或多或少都是可预测的，所以波束搜索效果比较好 - 参见 [Murray 等人（2018)](https://arxiv.org/abs/1808.10006) 和 [Yang 等人（2018）](https://arxiv.org/abs/1808.09582)的工作。但开放域文本生成情况有所不同，其输出文本长度可能会有很大差异，如对话和故事生成的输出文本长度就有很大不同。
+  - 在机器翻译或摘要等任务中，因为所需生成的长度或多或少都是可预测的，所以波束搜索效果比较好 - 参见 [Murray 等人（2018)](https://arxiv.org/abs/1808.10006)和 [Yang 等人（2018）](https://arxiv.org/abs/1808.09582)的工作。但开放域文本生成情况有所不同，其输出文本长度可能会有很大差异，如对话和故事生成的输出文本长度就有很大不同。
 
-  - 我们已经看到波束搜索已被证明存在重复生成的问题。在故事生成这样的场景中，很难用 *n-gram* 或其他惩罚来控制，因为在“不重复”和最大可重复*n-grams*之间找到一个好的折衷需要大量的微调。
+  - 我们已经看到波束搜索已被证明存在重复生成的问题。在故事生成这样的场景中，很难用 *n-元组*或其他惩罚来控制，因为在“不重复”和最大可重复*n-元组*之间找到一个好的折衷需要大量的微调。
 
   - 正如 [Ari Holtzman 等人（2019）](https://arxiv.org/abs/1904.09751)所论证的那样，高质量的人类语言并不遵循最大概率法则。换句话说，作为人类，我们希望生成的文本能让我们感到惊喜，而可预测的文本使人感觉无聊。论文作者画了一个概率图，很好地展示了这一点，从图中可以看出人类文本带来的惊喜度比波束搜索好不少。
 
-![alt text](https://blog.fastforwardlabs.com/images/2019/05/Screen_Shot_2019_05_08_at_3_06_36_PM-1557342561886.png)
+![](https://blog.fastforwardlabs.com/images/2019/05/Screen_Shot_2019_05_08_at_3_06_36_PM-1557342561886.png)
 
 因此，让我们开始玩点刺激的，引入一些随机性🤪。
 
@@ -252,11 +251,11 @@ print(tokenizer.decode(sample_output[0], skip_special_tokens=True))
 
 </div>
 
-有意思！生成的文本看起来不错 - 但仔细观察会发现它不是很连贯。*3-grams* *new hand sense* 和 *local batte harness* 非常奇怪，看起来不像是人写的。这就是对单词序列进行采样时的大问题：模型通常会产生不连贯的乱码，*参见* [Ari Holtzman 等人（2019）](https://arxiv.org/abs/1904.09751)的论文。
+有意思！生成的文本看起来不错 - 但仔细观察会发现它不是很连贯。*3-元组* *new hand sense* 和 *local batte harness* 非常奇怪，看起来不像是人写的。这就是对单词序列进行采样时的大问题：模型通常会产生不连贯的乱码，*参见* [Ari Holtzman 等人（2019）](https://arxiv.org/abs/1904.09751)的论文。
 
-缓解这一问题的一个技巧是通过降低所谓的[softmax](https://en.wikipedia.org/wiki/Softmax_function#Smooth_arg_max) 的“温度”使分布 $P(w|w_{1:t-1}$ 更陡峭。而降低“温度”，本质上是增加高概率单词的似然并降低低概率单词的似然。
+缓解这一问题的一个技巧是通过降低所谓的 [softmax](https://en.wikipedia.org/wiki/Softmax_function#Smooth_arg_max) 的“温度”使分布 $P(w|w_{1:t-1}$ 更陡峭。而降低“温度”，本质上是增加高概率单词的似然并降低低概率单词的似然。
 
-将温度应用到于我们的例子中后，结果如下图所示。
+将“温度”应用到于我们的例子中后，结果如下图所示。
 
 <img src="assets/02_how-to-generate/sampling_search_with_temp.png" alt="sampling temp search" style="margin: auto; display: block;">
 
@@ -289,7 +288,7 @@ print(tokenizer.decode(sample_output[0], skip_special_tokens=True))
 
 </div>
 
-好，奇怪的 n-gram 变少了，现在输出更连贯了！虽然温度可以使分布的随机性降低，但极限条件下，当“温度”设置为 $0$ 时，温度缩放采样就退化成贪心解码了，因此会遇到与贪心解码相同的问题。
+好，奇怪的 n-元组 变少了，现在输出更连贯了！虽然“温度”可以使分布的随机性降低，但极限条件下，当“温度”设置为 $0$ 时，温度缩放采样就退化成贪心解码了，因此会遇到与贪心解码相同的问题。
 
 ### Top-K 采样
 
@@ -297,7 +296,7 @@ print(tokenizer.decode(sample_output[0], skip_special_tokens=True))
 
 我们将上文例子中的候选单词数从 3 个单词扩展到 10 个单词，以更好地说明 *Top-K* 采样。
 
-<img src="assets/02_how-to-generate/top_k_sampling.png" alt="Top K sampling" style="margin: auto; display: block;">
+<img src="assets/02_how-to-generate/top_k_sampling.png" alt="Top-K 采样" style="margin: auto; display: block;">
 
 设 $K = 6$，即我们将在两个采样步的采样池大小限制为 6 个单词。我们定义 6 个最有可能的词的集合为 $V_{\text{top-K}}$。在第一步中，$V_{\text{top-K}}$ 仅占总概率的大约三分之二，但在第二步，它几乎占了全部的概率。同时，我们可以看到在第二步该方法成功地消除了那些奇怪的候选词 $(\text{``not"}, \text{``the"}, \text{``small"}, \text{``told" })$。
 
@@ -333,15 +332,15 @@ print(tokenizer.decode(sample_output[0], skip_special_tokens=True))
 
 相当不错！该文本可以说是迄今为止生成的最“*像人*”的文本。现在还有一个问题，*Top-K* 采样不会动态调整从需要概率分布 $P(w|w_{1:t-1})$ 中选出的单词数。这可能会有问题，因为某些分布可能是非常尖锐（上图中右侧的分布），而另一些可能更平坦（上图中左侧的分布），所以对不同的分布使用同一个绝对数 *K* 可能并不普适。
 
-在 $t=1$ 时，*Top-K* 将 $(\text{"people"}, \text{"big"}, \text{"house"}, \text{"cat"})$ 排出了采样池，而这些词似乎是合理的候选词。另一方面，在$t=2$ 时，该方法却又把不太合适的 $(\text{"down"}, \text{"a"})$ 纳入了采样池。因此，将采样池限制为固定大小 *K* 可能会在分布比较尖锐的时候产生胡言乱语，而在分布比较平坦的时候限制模型的创造力。这一发现促使 [Ari Holtzman 等人（2019）](https://arxiv.org/abs/1904.09751) 发明了 ***Top-p***- 或 ***核***- 采样。
+在 $t=1$ 时，*Top-K* 将 $(\text{"people"}, \text{"big"}, \text{"house"}, \text{"cat"})$ 排除出了采样池，而这些词似乎是合理的候选词。另一方面，在 $t=2$ 时，该方法却又把不太合适的 $(\text{"down"}, \text{"a"})$ 纳入了采样池。因此，将采样池限制为固定大小 *K* 可能会在分布比较尖锐的时候产生胡言乱语，而在分布比较平坦的时候限制模型的创造力。这一发现促使 [Ari Holtzman 等人（2019）](https://arxiv.org/abs/1904.09751) 发明了 ***Top-p***- 或 ***核***- 采样。
 
 ### Top-p（核）采样
 
-在 *Top-p* 中，采样不只是在最有可能的 *K* 个单词中进行，而是在累积概率超过概率 *p* 的最小单词集中进行。然后在这组词中重新分配概率质量。这样，词集的大小（*又名*集合中的词数）可以根据下一个词的概率分布动态增加和减少。好吧，说的很啰嗦，一图胜千言。
+在 *Top-p* 中，采样不只是在最有可能的 *K* 个单词中进行，而是在累积概率超过概率 *p* 的最小单词集中进行。然后在这组词中重新分配概率质量。这样，词集的大小（*又名*集合中的词数）可以根据下一个词的概率分布动态增加和减少。好吧，说得很啰嗦，一图胜千言。
 
-<img src="assets/02_how-to-generate/top_p_sampling.png" alt="Top p sampling" style="margin: auto; display: block;">
+<img src="assets/02_how-to-generate/top_p_sampling.png" alt="Top-p 采样" style="margin: auto; display: block;">
 
-假设 $p=0.92$ ，*Top-p* 采样对单词概率进行降序排列并累加，然后选择概率和首次超过 $p=92\%$ 的单词集作为采样池，定义为 $V_{\text{top-p}}$。在 $t=1$ 时 $V_{\text{top-p}}$ 有 9 个词，而在 $t=2$ 时它只需要选择前 3 个词就超过了 92%。其实很简单吧！可以看出，在单词比较不可预测时，它保留了更多的候选词，*如* $P(w | \text{"The''})$，而当单词似乎更容易预测时，只保留了几个候选词，*如* $(P(w | \text{"The"}, \text{"car"})$。
+假设 $p=0.92$，*Top-p* 采样对单词概率进行降序排列并累加，然后选择概率和首次超过 $p=92\%$ 的单词集作为采样池，定义为 $V_{\text{top-p}}$。在 $t=1$ 时 $V_{\text{top-p}}$ 有 9 个词，而在 $t=2$ 时它只需要选择前 3 个词就超过了 92%。其实很简单吧！可以看出，在单词比较不可预测时，它保留了更多的候选词，*如* $P(w | \text{"The''})$，而当单词似乎更容易预测时，只保留了几个候选词，*如* $(P(w | \text{"The"}, \text{"car"})$。
 
 好的，是时候看看它在 `transformers` 里怎么用了！我们可以通过设置 `0 < top_p < 1` 来激活 *Top-p* 采样：
 
@@ -416,17 +415,17 @@ Output:
 
 ### 总结
 
-在开放域语言生成场景中，作为最新的解码方法，*top-p* 和 *top-K* 采样于传统的 *贪心* 和 *波束* 搜索相比，似乎能产生更流畅的文本。但，最近有更多的证据表明 *贪心* 和 *波束* 搜索的明显缺陷 - 主要是生成重复的单词序列 - 是由模型（特别是模型的训练方式）引起的，而不是解码方法，*参见* [Welleck 等人 （2019）](https://arxiv.org/pdf/1908.04319.pdf)的论文。此外，如 [Welleck 等人（2020）](https://arxiv.org/abs/2002.02492)的论文所述，看起来 *top-K* 和 *top-p* 采样也会产生重复的单词序列。
+在开放域语言生成场景中，作为最新的解码方法，*top-p* 和 *top-K* 采样于传统的 *贪心* 和 *波束* 搜索相比，似乎能产生更流畅的文本。但最近有更多的证据表明 *贪心* 和 *波束* 搜索的明显缺陷 - 主要是生成重复的单词序列 - 是由模型（特别是模型的训练方式）引起的，而不是由解码方法引起的，参见 [Welleck 等人（2019）](https://arxiv.org/pdf/1908.04319.pdf)的论文。此外，如 [Welleck 等人（2020）](https://arxiv.org/abs/2002.02492)的论文所述，看起来 *top-K* 和 *top-p* 采样也会产生重复的单词序列。
 
 在 [Welleck 等人（2019）](https://arxiv.org/pdf/1908.04319.pdf)的论文中，作者表明，根据人类评估，在调整训练目标后，波束搜索相比 *Top-p* 采样能产生更流畅的文本。
 
 开放域语言生成是一个快速发展的研究领域，而且通常情况下这里没有放之四海而皆准的方法，因此必须了解哪种方法最适合自己的特定场景。
 
-好的方面是，*你*可以在 `transfomers` 中尝试所有不同的解码方法 🤗。
+好的方面是，你可以在 `transfomers` 中尝试所有不同的解码方法 🤗。
 
 以上是对如何在 `transformers` 中使用不同的解码方法以及开放域语言生成的最新趋势的简要介绍。
 
-非常欢迎大家在 [Github 代码库](https://github.com/huggingface/transformers) 上提供反馈和问题。
+非常欢迎大家在 [Github 代码库](https://github.com/huggingface/transformers)上提供反馈和问题。
 
 如果想要体验下用模型生成故事的乐趣，可以访问我们的 web 应用 [Writing with Transformers](https://transformer.huggingface.co/)。
 
@@ -438,13 +437,13 @@ Output:
 
   - `min_length` 用于强制模型在达到 `min_length` 之前不生成 EOS。这在摘要场景中使用得比较多，但如果用户想要更长的文本输出，也会很有用。
 
-  - `repetition_penalty` 可用于对生成重复的单词这一行为进行惩罚。它首先由 [Keskar 等人（2019）](https://arxiv.org/abs/1909.05858)引入，在 [Welleck 等人（2019）](https://arxiv.org/pdf/1908.04319.pdf) 的工作中，它是训练目标的一部分。它可以非常有效地防止重复，但似乎对模型和用户场景非常敏感，其中一个例子见 Github 上的[讨论](https://github.com/huggingface/transformers/pull/2303)。
+  - `repetition_penalty` 可用于对生成重复的单词这一行为进行惩罚。它首先由 [Keskar 等人（2019）](https://arxiv.org/abs/1909.05858)引入，在 [Welleck 等人（2019）](https://arxiv.org/pdf/1908.04319.pdf)的工作中，它是训练目标的一部分。它可以非常有效地防止重复，但似乎对模型和用户场景非常敏感，其中一个例子见 Github 上的[讨论](https://github.com/huggingface/transformers/pull/2303)。
 
   - `attention_mask` 可用于屏蔽填充符。
 
   - `pad_token_id`、`bos_token_id`、`eos_token_id`：如果模型默认没有这些token，用户可以手动选择其他token id来表示它们。
 
-更多信息，请查阅 `generate` 函数 [手册](https://huggingface.co/transformers/main_classes/model.html?highlight=generate#transformers.TFPreTrainedModel.generate)。
+更多信息，请查阅 `generate` [函数手册](https://huggingface.co/transformers/main_classes/model.html?highlight=generate#transformers.TFPreTrainedModel.generate)。
 
 > 英文原文: <url> https://huggingface.co/blog/how-to-generate </url>
 > 原文作者：Patrick von Platen
