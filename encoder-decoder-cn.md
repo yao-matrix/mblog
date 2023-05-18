@@ -22,28 +22,28 @@ translators:
 !pip install transformers==4.2.1
 !pip install sentencepiece==0.1.95
 ```
-Vaswani 等人在其名篇 [Attention is all you need paper](https://arxiv.org/abs/1706.03762) 中首创了*基于 transformer* 的编码器-解码器模型，如今已成为自然语言处理 (natural language processing，NLP) 领域编码器-解码器架构的*事实标准*。
+Vaswani 等人在其名作 [Attention is all you need](https://arxiv.org/abs/1706.03762) 中首创了*基于 transformer* 的编码器-解码器模型，如今已成为自然语言处理 (natural language processing，NLP) 领域编码器-解码器架构的*事实标准*。
 
-虽然最近在基于 transformer 的编码器-解码器模型训练这一方向涌现出了大量的对不同的*预训练目标函数*的研究，*例如* T5、Bart、Pegasus、ProphetNet、Marge等，但这些模型的网络结构基本上还是一致的。
+最近基于 transformer 的编码器-解码器模型训练这一方向涌现出了大量关于*预训练目标函数*的研究，*例如* T5、Bart、Pegasus、ProphetNet、Marge等，但它们所使用的网络结构并没有改变。
 
-本文的目的是**详细**解释如何用基于 transformer 的编码器-解码器架构来建模*序列到序列（sequence-to-sequence）* 问题。我们将重点关注有关这一架构的数学知识以及如何将该模型用于推理。在此过程中，我们还将介绍 NLP 中序列到序列模型的一些背景知识，并将*基于 transformer* 的编码器-解码器架构分解为 **编码器** 和 **解码器** 这两个部分分别予以详细解释。我们提供了许多图例，并把*基于 transformer* 的编码器-解码器模型的理论与其在 🤗 transformers 推理场景中的实际应用二者联系起来。请注意，这篇博文*不*解释如何训练这些模型 —— 我们会在后续博文中涵盖这一方面的内容。
+本文的目的是**详细**解释如何用基于 transformer 的编码器-解码器架构来对*序列到序列（sequence-to-sequence）* 问题进行建模。我们将重点关注有关这一架构的数学知识以及如何对该架构的模型进行推理。在此过程中，我们还将介绍 NLP 中序列到序列模型的一些背景知识，并将*基于 transformer* 的编码器-解码器架构分解为 **编码器** 和 **解码器** 这两个部分分别讨论。我们提供了许多图例，并把*基于 transformer* 的编码器-解码器模型的理论与其在 🤗 transformers 推理场景中的实际应用二者联系起来。请注意，这篇博文*不*解释如何训练这些模型 —— 我们会在后续博文中涵盖这一方面的内容。
 
-基于 transformer 的编码器-解码器模型是*表征学习*和*模型架构*这两个领域多年研究成果的结晶。本文简要介绍了神经编码器-解码器模型的历史，更多背景知识，建议读者阅读这篇由 Sebastion Ruder 撰写的精彩[博文](https://ruder.io/a-review-of-the-recent-history-of-nlp/)。此外，建议读者对*自注意力（self-attention）架构*有一个基本了解，可以阅读 Jay Alammar 的[这篇博文](http://jalammar.github.io/illustrated-transformer/)复习一下原始 transformer 模型。
+基于 transformer 的编码器-解码器模型是*表征学习*和*模型架构*这两个领域多年研究成果的结晶。本文简要介绍了神经编码器-解码器模型的历史，更多背景知识，建议读者阅读由 Sebastion Ruder 撰写的这篇精彩[博文](https://ruder.io/a-review-of-the-recent-history-of-nlp/)。此外，建议读者对*自注意力（self-attention）架构*有一个基本了解，可以阅读 Jay Alammar 的[这篇博文](http://jalammar.github.io/illustrated-transformer/)复习一下原始 transformer 模型。
 
-截至本文撰写时，🤗 transformers 库已经支持的编码器-解码器模型有： *T5*、*Bart*、*MarianMT* 以及 *Pegasus*，你可以从[这儿](https://huggingface.co/docs/transformers/model_summary#nlp-encoder-decoder)获取相关信息。
+截至本文撰写时，🤗 transformers 库已经支持的编码器-解码器模型有：*T5*、*Bart*、*MarianMT* 以及 *Pegasus*，你可以从[这儿](https://huggingface.co/docs/transformers/model_summary#nlp-encoder-decoder)获取相关信息。
 
 本文分 4 个部分：
 
 - **背景** - *简要回顾了神经编码器-解码器模型的历史，重点关注基于 RNN 的模型。*
-- **编码器-解码器** - *解释基于 transformer 的编码器-解码器模型，并解释了如何使用该模型进行推理。*
-- **编码器** - *详解模型的编码器部分。*
-- **解码器** - *详解模型的解码器部分。*
+- **编码器-解码器** - *阐述基于 transformer 的编码器-解码器模型，并阐述如何使用该模型进行推理。*
+- **编码器** - *阐述模型的编码器部分。*
+- **解码器** - *阐述模型的解码器部分。*
 
 每个部分都建立在前一部分的基础上，但也可以单独阅读。
 
 ## **背景**
 
-自然语言生成 (natural language generation，NLG）是 NLP 的一个子领域，其任务一般可被建模为序列到序列问题。这类任务可以定义为寻找一个模型，该模型将输入词序列映射到目标词序列，典型的例子有*摘要*和*翻译*。在下文中，我们假设每个单词都被编码为一个向量表征。因此，$n$ 个输入词可以表示为 $n$ 个输入向量组成的序列：
+自然语言生成 (natural language generation，NLG）是 NLP 的一个子领域，其任务一般可被建模为序列到序列问题。这类任务可以定义为寻找一个模型，该模型将输入词序列映射为目标词序列，典型的例子有*摘要*和*翻译*。在下文中，我们假设每个单词都被编码为一个向量表征。因此，$n$ 个输入词可以表示为 $n$ 个输入向量组成的序列：
 
 $$\mathbf{X}_{1:n} = \{\mathbf{x}_1, \ldots, \mathbf{x}_n\}$$
 
@@ -51,31 +51,31 @@ $$\mathbf{X}_{1:n} = \{\mathbf{x}_1, \ldots, \mathbf{x}_n\}$$
 
 $$ f: \mathbf{X}_{1:n} \to \mathbf{Y}_{1:m} $$
 
-[Sutskever 等（2014）](https://arxiv.org/abs/1409.3215)的工作指出，深度神经网络 (deep neural networks，DNN) “*尽管灵活而强大，但只能用于拟合一个输入和输出维度均固定的映射。*” ${}^1$
+[Sutskever 等（2014）](https://arxiv.org/abs/1409.3215)的工作指出，深度神经网络（deep neural networks，DNN）“*尽管灵活且强大，但只能用于拟合输入和输出维度均固定的映射。*” ${}^1$
 
-因此，要用使用 DNN 模型 ${}^2$ 解决序列到序列问题就意味着目标向量数 $m$ 必须是先验已知的，且必须独立于输入 $\mathbf{X}_{1:n}$。这样设定肯定不是最优的。因为对 NLG 任务而言，目标词的数量通常取决于输入内容 $\mathbf{X}_{1:n}$ 而不仅仅是输入长度 $n$。 *例如*，一篇 1000 字的文章，根据内容的不同，有可能可以概括为 200 字，也有可能可以概括为 100 字。
+因此，要用使用 DNN 模型 ${}^2$ 解决序列到序列问题就意味着目标向量数 $m$ 必须是先验已知的，且必须独立于输入 $\mathbf{X}_{1:n}$。这样设定肯定不是最优的。因为对 NLG 任务而言，目标词的数量通常取决于输入内容 $\mathbf{X}_{1:n}$，而不仅仅是输入长度 $n$。 *例如*，一篇 1000 字的文章，根据内容的不同，有可能可以概括为 200 字，也有可能可以概括为 100 字。
 
 2014 年，[Cho 等人](https://arxiv.org/pdf/1406.1078.pdf)和 [Sutskever 等人](https://arxiv.org/abs/1409.3215)提出使用完全基于递归神经网络（recurrent neural networks，RNN）的编码器-解码器模型来解决*序列到序列*任务。与 DNN 相比，RNN 支持输出可变数量的目标向量。下面，我们深入了解一下基于 RNN 的编码器-解码器模型的功能。
 
-在推理过程中，RNN 编码器通过连续更新其*隐含状态* ${}^3$ 对输入序列 $\mathbf{X}_{1:n}$ 进行编码。我们定义处理完最后一个输入向量 $\mathbf{x}_n$ 后的编码器隐含状态为 $\mathbf{c}$。因此，编码器完成的映射如下：
+在推理过程中，RNN 编码器通过连续更新其*隐含状态* ${}^3$ 对输入序列 $\mathbf{X}_{1:n}$ 进行编码。我们定义处理完最后一个输入向量 $\mathbf{x}_n$ 后的编码器隐含状态为 $\mathbf{c}$。因此，编码器主要完成如下映射：
 
 $$ f_{\theta_{enc}}: \mathbf{X}_{1:n} \to \mathbf{c} $$
 
-然后，我们用 $\mathbf{c}$ 来初始化解码器的隐含状态，再用解码器 RNN 自回归地生成目标序列。下面，我们来解释一下。
+然后，我们用 $\mathbf{c}$ 来初始化解码器的隐含状态，再用解码器 RNN 自回归地生成目标序列。
 
-从数学角度讲，解码器定义了给定隐含状态 $\mathbf{c}$ 下目标序列 $\mathbf{Y}_{1:m}$ 的概率分布：
+下面，我们进一步解释一下。从数学角度讲，解码器定义了给定隐含状态 $\mathbf{c}$ 下目标序列 $\mathbf{Y}_{1:m}$ 的概率分布：
 
 $$ p_{\theta_{dec}}(\mathbf{Y}_{1:m} |\mathbf{c}) $$
 
-根据贝叶斯法则，上述分布可以分解为单个目标向量的条件分布的积，如下所示：
+根据贝叶斯法则，上述分布可以分解为每个目标向量的条件分布的积，如下所示：
 
 $$ p_{\theta_{dec}}(\mathbf{Y}_{1:m} |\mathbf{c}) = \prod_{i=1}^{m} p_{\theta_{\text{dec}}}(\mathbf{y}_i | \mathbf{Y}_{0: i-1}, \mathbf{c}) $$
 
-因此，如果模型架构可以在给定所有前驱目标向量的条件下对下一个目标向量的条件分布进行建模：
+因此，如果模型架构可以在给定所有前驱目标向量的条件下对下一个目标向量的条件分布进行建模的话：
 
 $$ p_{\theta_{\text{dec}}}(\mathbf{y}_i | \mathbf{Y}_{0: i-1}, \mathbf{c}), \forall i \in \{1, \ldots, m\}$$
 
-则它可以通过简单地将所有条件概率相乘来模拟给定隐藏状态 $\mathbf{c}$ 条件下任意目标向量序列的分布。
+那它就可以通过简单地将所有条件概率相乘来模拟给定隐藏状态 $\mathbf{c}$ 下任意目标向量序列的分布。
 
 那么基于 RNN 的解码器架构如何建模 
 $p_{\theta_{\text{dec}}}(\mathbf{y}_i | \mathbf{Y}_{0: i-1}, \mathbf{c})$ 呢?
@@ -88,10 +88,10 @@ $$ f_{\theta_{\text{dec}}}(\mathbf{y}_{i-1}, \mathbf{c}_{i-1}) \to \mathbf{l}_i,
 
 $$ p(\mathbf{y}_i | \mathbf{l}_i) = \textbf{Softmax}(\mathbf{l}_i), \text{ 其中 } \mathbf{l}_i = f_{\theta_{\text{dec}}}(\mathbf{y}_{i-1}, \mathbf{c}_{\text{prev}})$$
 
-更多有关 logit 向量及其生成的概率分布的详细信息，请参阅脚注 ${}^4$。从上式可以看出，目标向量 $\mathbf{y}_i$ 的分布是其前一时刻的目标向量 $\mathbf{y}_{i-1}$ 及前一时刻的隐含状态 $\mathbf{c}_{i-1}$ 的条件分布。而我们知道前一时刻的隐含状态 $\mathbf{c}_{i-1}$ 依赖于之前所有的目标向量 $\mathbf{y}_0, \ldots, \mathbf{y}_{i- 2}$，因此我们可以说 RNN 解码器*隐式*（*或间接*）建模了条件分布
+更多有关 logit 向量及其生成的概率分布的详细信息，请参阅脚注 ${}^4$。从上式可以看出，目标向量 $\mathbf{y}_i$ 的分布是其前一时刻的目标向量 $\mathbf{y}_{i-1}$ 及前一时刻的隐含状态 $\mathbf{c}_{i-1}$ 的条件分布。而我们知道前一时刻的隐含状态 $\mathbf{c}_{i-1}$ 依赖于之前所有的目标向量 $\mathbf{y}_0, \ldots, \mathbf{y}_{i- 2}$，因此我们可以说 RNN 解码器*隐式*（*或间接*）地建模了条件分布
 $p_{\theta_{\text{dec}}}(\mathbf{y}_i | \mathbf{Y}_{0: i-1}, \mathbf{c})$。
 
-目标向量序列 $\mathbf{Y}_{1:m}$ 的概率空间非常大，因此在推理时，必须借助解码方法 ${}^5$ 从 $p_{\theta_{dec}}(\mathbf{Y}_{1:m} |\mathbf{c})$ 对齐进行采样才能高效地生成最终的目标向量序列。
+目标向量序列 $\mathbf{Y}_{1:m}$ 的概率空间非常大，因此在推理时，必须借助解码方法对= ${}^5$ 对 $p_{\theta_{dec}}(\mathbf{Y}_{1:m} |\mathbf{c})$ 进行采样才能高效地生成最终的目标向量序列。
 
 给定某解码方法，在推理时，我们首先从分布 $p_{\theta_{\text{dec}}}(\mathbf{y}_i | \mathbf{Y}_{0: i-1}, \mathbf{c})$ 中采样出下一个输出向量；接着，将其添加至解码器输入序列末尾，让解码器 RNN 继续从
 $p_{\theta_{\text{dec}}}(\mathbf{y}_{i+1} | \mathbf{Y}_{0: i}, \mathbf{c})$ 中采样出下一个输出向量 $\mathbf{y}_{i+1}$，如此往复，整个模型就以*自回归*的方式生成了最终的输出序列。
@@ -102,7 +102,7 @@ $p_{\theta_{\text{dec}}}(\mathbf{y}_{i+1} | \mathbf{Y}_{0: i}, \mathbf{c})$ 中�
 
 上图中，我们将编码器 RNN 编码器展开，并用绿色表示；同时，将解码器 RNN 展开，并用红色表示。
 
-英文句子 `I want to buy a car`，表示为 $(\mathbf{x}_1 = \text{I}$，$\mathbf{x}_2 = \text{want}$，$\mathbf{x}_3 = \text{to}$，$\mathbf{x}_4 = \text{buy}$，$\mathbf{x} _5 = \text{a}$，$\mathbf{x}_6 = \text{car}$，$\mathbf{x}_7 = \text{EOS}$)。将其翻译成德语：“Ich will ein Auto kaufen\"，表示为 $(\mathbf{y}_0 = \text{BOS}$，$\mathbf{y}_1 = \text{Ich}$，$\mathbf{y}_2 = \text{will}$，$\mathbf{y}_3 = \text {ein}$，$\mathbf{y}_4 = \text{Auto}$，$\mathbf{y}_5 = \text{kaufen}$，$\mathbf{y}_6=\text{EOS}$)。首先，编码器 RNN 处理输入向量 $\mathbf{x}_1 = \text{I}$ 并更新其隐含状态。请注意，对编码器而言，因为我们只对其最终隐含状态 $\mathbf{c}$ 感兴趣，所以我们可以忽略它的目标向量。然后，编码器 RNN 以相同的方式依次处理输入句子的其余部分 $\text{want}$，$\text{to}$，$\text{buy}$，$\text{a}$，$\text{car}$，$\text{EOS}$，并每一步都更新其隐含状态，直到遇到向量 $\mathbf{x}_7={EOS}$ ${}^6$。在上图中，连接展开的编码器 RNN 的水平箭头表示隐含状态的顺序更新。编码器 RNN 的最终隐含状态，由 $\mathbf{c}$ 表示，其完全定义了输入序列的*编码*，并可用作解码器 RNN 的初始隐含状态。可以认为，解码器 RNN 以编码器 RNN 的最终隐含状态为条件。
+英文句子 `I want to buy a car`，表示为 $(\mathbf{x}_1 = \text{I}$，$\mathbf{x}_2 = \text{want}$，$\mathbf{x}_3 = \text{to}$，$\mathbf{x}_4 = \text{buy}$，$\mathbf{x} _5 = \text{a}$，$\mathbf{x}_6 = \text{car}$，$\mathbf{x}_7 = \text{EOS}$)。将其翻译成德语：“Ich will ein Auto kaufen\"，表示为 $(\mathbf{y}_0 = \text{BOS}$，$\mathbf{y}_1 = \text{Ich}$，$\mathbf{y}_2 = \text{will}$，$\mathbf{y}_3 = \text {ein}$，$\mathbf{y}_4 = \text{Auto}$，$\mathbf{y}_5 = \text{kaufen}$，$\mathbf{y}_6=\text{EOS}$)。首先，编码器 RNN 处理输入向量 $\mathbf{x}_1 = \text{I}$ 并更新其隐含状态。请注意，对编码器而言，因为我们只对其最终隐含状态 $\mathbf{c}$ 感兴趣，所以我们可以忽略它的目标向量。然后，编码器 RNN 以相同的方式依次处理输入句子的其余部分：$\text{want}$、$\text{to}$、$\text{buy}$、$\text{a}$、$\text{car}$、$\text{EOS}$，并且每一步都更新其隐含状态，直到遇到向量 $\mathbf{x}_7={EOS}$ ${}^6$。在上图中，连接展开的编码器 RNN 的水平箭头表示按序更新隐含状态。编码器 RNN 的最终隐含状态，由 $\mathbf{c}$ 表示，其完全定义了输入序列的*编码*，并可用作解码器 RNN 的初始隐含状态。可以认为，解码器 RNN 以编码器 RNN 的最终隐含状态为条件。
 
 为了生成第一个目标向量，将 $\text{BOS}$ 向量输入给解码器，即上图中的 $\mathbf{y}_0$。然后通过*语言模型头（LM Head）* 前馈层将 RNN 的目标向量进一步映射到 logit 向量 $\mathbf{l}_1$，此时，可得第一个目标向量的条件分布：
 
@@ -112,7 +112,7 @@ $$ p_{\theta_{dec}}(\mathbf{y} | \text{BOS}, \mathbf{c}) $$
 
 $$ \text{will} \sim p_{\theta_{dec}}(\mathbf{y} | \text{BOS}, \text{Ich}, \mathbf{c}) $$
 
-依此类推，一直到步骤 $i=6$，此时从 $\mathbf{l}_6$ 中采样出 $\text{EOS}$，解码完成。输出目标序列为 $\mathbf{Y}_{1:6} = \{\mathbf{y}_1, \ldots, \mathbf{y}_6\}$, 即上文中的 “Ich will ein Auto kaufen”。
+依此类推，一直到第 6 步，此时从 $\mathbf{l}_6$ 中采样出 $\text{EOS}$，解码完成。输出目标序列为 $\mathbf{Y}_{1:6} = \{\mathbf{y}_1, \ldots, \mathbf{y}_6\}$, 即上文中的 “Ich will ein Auto kaufen”。
 
 综上所述，我们通过将分布 $p(\mathbf{Y}_{1:m} | \mathbf{X}_{1:n})$ 分解为 $f_{\theta_{\text{enc}}}$ 和 $p_{\theta_{\text{dec}}}$ 的表示来建模基于 RNN 的 encoder-decoder 模型：
 
@@ -167,7 +167,7 @@ $$
 p_{\theta_{dec}}(\mathbf{Y}_{1:m} | \mathbf{\overline{X}}_{1:n}) = \prod_{i=1}^{m} p_{\theta_{\text{dec}}}(\mathbf{y}_i | \mathbf{Y}_{0: i-1}, \mathbf{\overline{X}}_{1:n}) $$
 
 
-因此，在生成 $\mathbf{y}_i$ 时，基于 transformer 的解码器将隐含状态序列 $\mathbf{\overline{X}}_{1:n}$ 及其所有前驱目标向量 $\mathbf{Y}_{0 :i-1}$ 映射到 *logit* 向量 $\mathbf{l}_i$。 然后经由 *softmax* 运算对 logit 向量 $\mathbf{l}_i$ 进行处理，从而生成条件分布 $p_{\theta_{\text{dec}}}(\mathbf{y} _i | \mathbf{Y}_{0: i-1}, \mathbf{\overline{X}}_{1:n})$。这个流程跟基于 RNN 的解码器是一样的。然而，与基于 RNN 的解码器不同的是，在这里，目标向量 $\mathbf{y}_i$ 的分布是*显式*（或直接）地以其所有前驱目标向量 $\mathbf{y} _0, \ldots, \mathbf{y}_{i-1}$ 为条件的，稍后我们将详细介绍。在此，第 0 个目标向量 $\mathbf{y}_0$ 仍表示为 $\text{BOS}$ 向量。有了条件分布 $p_{\theta_{\text{dec}}}(\mathbf{y}_i | \mathbf{Y}_{0: i-1}, \mathbf{\overline{X} }_{1:n})$，我们就可以*自回归*生成输出了。至此，我们定义了可用于推理的从输入序列 $\mathbf{X}_{1:n}$ 到输出序列 $\mathbf{Y}_{1:m}$ 的映射。
+因此，在生成 $\mathbf{y}_i$ 时，基于 transformer 的解码器将隐含状态序列 $\mathbf{\overline{X}}_{1:n}$ 及其所有前驱目标向量 $\mathbf{Y}_{0 :i-1}$ 映射到 *logit* 向量 $\mathbf{l}_i$。 然后经由 *softmax* 运算对 logit 向量 $\mathbf{l}_i$ 进行处理，从而生成条件分布 $p_{\theta_{\text{dec}}}(\mathbf{y} _i | \mathbf{Y}_{0: i-1}, \mathbf{\overline{X}}_{1:n})$。这个流程跟基于 RNN 的解码器是一样的。然而，与基于 RNN 的解码器不同的是，在这里，目标向量 $\mathbf{y}_i$ 的分布是*显式*（或直接）地以其所有前驱目标向量 $\mathbf{y} _0, \ldots, \mathbf{y}_{i-1}$ 为条件的，稍后我们将详细介绍。此处第 0 个目标向量 $\mathbf{y}_0$ 仍表示为 $\text{BOS}$ 向量。有了条件分布 $p_{\theta_{\text{dec}}}(\mathbf{y}_i | \mathbf{Y}_{0: i-1}, \mathbf{\overline{X} }_{1:n})$，我们就可以*自回归*生成输出了。至此，我们定义了可用于推理的从输入序列 $\mathbf{X}_{1:n}$ 到输出序列 $\mathbf{Y}_{1:m}$ 的映射。
 
 我们可视化一下使用*基于 transformer* 的编码器-解码器模型*自回归*地生成序列的完整过程。
 
@@ -175,7 +175,7 @@ p_{\theta_{dec}}(\mathbf{Y}_{1:m} | \mathbf{\overline{X}}_{1:n}) = \prod_{i=1}^{
 
 上图中，绿色为基于 transformer 的编码器，红色为基于 transformer 的解码器。与上一节一样，我们展示了如何将表示为 $(\mathbf{x}_1 = \text{I}，\mathbf{ x}_2 = \text{want}，\mathbf{x}_3 = \text{to}，\mathbf{x}_4 = \text{buy}，\mathbf{x}_5 = \text{a}，\mathbf{x}_6 = \text{car}，\mathbf{x}_7 = \text{EOS})$ 的英语句子 “I want to buy a car” 翻译成表示为 $(\mathbf{y}_0 = \text{BOS}，\mathbf{y }_1 = \text{Ich}，\mathbf{y}_2 = \text{will}，\mathbf{y}_3 = \text{ein}，\mathbf{y}_4 = \text{Auto}，\mathbf{y}_5 = \text{kaufen}，\mathbf{y}_6=\text{EOS})$ 的德语句子 “Ich will ein Auto kaufen”。
 
-首先，编码器将完整的输入序列 $\mathbf{X}_{1:7}$ = "I want to buy a car"（由浅绿色向量表示）处理为上下文相关的编码序列 $\mathbf{\overline{X}}_{1:7}$。这里上下文相关的意思是，*举个例子* $\mathbf{\overline{x}}_4$ 的编码不仅取决于输入 $\mathbf{x}_4$ = "buy"，还与所有其他词 "I"、"want"、"to"、"a"、"car" 及 "EOS" 相关，这些词即该词的*上下文*。
+首先，编码器将完整的输入序列 $\mathbf{X}_{1:7}$ = "I want to buy a car"（由浅绿色向量表示）处理为上下文相关的编码序列 $\mathbf{\overline{X}}_{1:7}$。这里上下文相关的意思是，*举个例子*，$\mathbf{\overline{x}}_4$ 的编码不仅取决于输入 $\mathbf{x}_4$ = "buy"，还与所有其他词 "I"、"want"、"to"、"a"、"car" 及 "EOS" 相关，这些词即该词的*上下文*。
 
 接下来，输入编码 $\mathbf{\overline{X}}_{1:7}$ 与 BOS 向量（*即* $\mathbf{y}_0$）被一起馈送到解码器。解码器将输入 $\mathbf{\overline{X}}_{1:7}$ 和 $\mathbf{y}_0$ 变换为第一个 logit $\mathbf{l }_1$（图中以深红色显示），从而得到第一个目标向量 $\mathbf{y}_1$ 的条件分布：
 
@@ -193,7 +193,7 @@ $$ \text{EOS} \sim p_{\theta_{dec}}(\mathbf{y} | \text{BOS Ich will ein Auto kau
 
 ![](https://raw.githubusercontent.com/patrickvonplaten/scientific_images/master/encoder_decoder/EncoderDecoder_step_by_step.png)
 
-可以看出，仅在步骤 $i=1$ 时，我们才需要将 "I want to buy a car EOS" 编码为 $\mathbf{\overline{X}}_{1:7}$。从 $i=2$ 开始，解码器只是简单地重用了已生成的编码。
+可以看出，仅在步骤 $i=1$ 时，我们才需要将 "I want to buy a car EOS" 编码为 $\mathbf{\overline{X}}_{1:7}$。从 $i=2$ 开始，解码器只是简单地复用了已生成的编码。
 
 在 🤗 transformers 库中，这一自回归生成过程是在调用 `.generate()` 方法时在后台完成的。我们用一个翻译模型来实际体验一下。
 
@@ -219,7 +219,7 @@ print(tokenizer.decode(output_ids))
     <pad> Ich will ein Auto kaufen
 ```
 
-`.generate()` 接口会做很多事情。首先，它将 `input_ids` 传递给编码器。然后，它将一个预定义的标记连同已编码的 `input_ids`一起传递给解码器（在使用 `MarianMTModel` 的情况下，该预定义标记为 $\text{<pad>}$）。接着，它使用波束搜索解码机制根据最新的解码器输出的概率分布${}^1$自回归地采样下一个输出词。更多有关波束搜索解码工作原理的详细信息，建议阅读[这篇博文](https://huggingface.co/blog/zh/how-to-generate) 。
+`.generate()` 接口做了很多事情。首先，它将 `input_ids` 传递给编码器。然后，它将一个预定义的标记连同已编码的 `input_ids`一起传递给解码器（在使用 `MarianMTModel` 的情况下，该预定义标记为 $\text{<pad>}$）。接着，它使用波束搜索解码机制根据最新的解码器输出的概率分布${}^1$自回归地采样下一个输出词。更多有关波束搜索解码工作原理的详细信息，建议阅读[这篇博文](https://huggingface.co/blog/zh/how-to-generate) 。
 
 我们在附录中加入了一个代码片段，展示了如何“从头开始”实现一个简单的生成方法。如果你想要完全了解*自回归*生成的幕后工作原理，强烈建议阅读附录。
 
@@ -241,9 +241,9 @@ ${}^1$ 可以从[此处](https://s3.amazonaws.com/models.huggingface.co/bert/Hel
 
 $$ f_{\theta_{\text{enc}}}: \mathbf{X}_{1:n} \to \mathbf{\overline{X}}_{1:n} $$
 
-仔细观察架构，基于 transformer 的编码器由许多*残差注意力模块*堆叠而成。每个编码器模块都包含一个**双向**自注意力层，其后跟着两个前馈层。这里，为简单起见，我们忽略归一化层（normalization layer）。此外，我们不会深入讨论两个前馈层的作用，仅将其视为每个编码器模块 ${}^1$ 的输出映射层。双向自注意层将每个输入向量 $\mathbf{x'}_j, \forall j \in \{1, \ldots, n\}$ 与全部输入向量 $\mathbf{x'}_1, \ldots, \mathbf{x'}_n$ 相关联并通过该机制将每个输入向量 $\mathbf{x'}_j$ 提炼为与其自身上下文相关的表征：$\mathbf{x''}_j$。因此，第一个编码器块将输入序列 $\mathbf{X}_{1:n}$（如下图浅绿色所示）中的每个输入向量从*上下文无关*的向量表征转换为*上下文相关*的向量表征，后面每一个编码器模块都会进一步细化这个上下文表示，直到最后一个编码器模块输出最终的上下文相关编码 $\mathbf{\overline{X}}_{1:n}$（如下图深绿色所示）。
+仔细观察架构，基于 transformer 的编码器由许多*残差注意力模块*堆叠而成。每个编码器模块都包含一个**双向**自注意力层，其后跟着两个前馈层。这里，为简单起见，我们忽略归一化层（normalization layer）。此外，我们不会深入讨论两个前馈层的作用，仅将其视为每个编码器模块 ${}^1$ 的输出映射层。双向自注意层将每个输入向量 $\mathbf{x'}_j, \forall j \in \{1, \ldots, n\}$ 与全部输入向量 $\mathbf{x'}_1, \ldots, \mathbf{x'}_n$ 相关联并通过该机制将每个输入向量 $\mathbf{x'}_j$ 提炼为与其自身上下文相关的表征：$\mathbf{x''}_j$。因此，第一个编码器块将输入序列 $\mathbf{X}_{1:n}$（如下图浅绿色所示）中的每个输入向量从*上下文无关*的向量表征转换为*上下文相关*的向量表征，后面每一个编码器模块都会进一步细化这个上下文表征，直到最后一个编码器模块输出最终的上下文相关编码 $\mathbf{\overline{X}}_{1:n}$（如下图深绿色所示）。
 
-我们对`编码器如何将输入序列 "I want to buy a car EOS" 变换为上下文编码序列`进行一下可视化。与基于 RNN 的编码器类似，基于 transformer 的编码器也在输入序列最后添加了一个 EOS，以提示模型输入向量序列已结束 ${}^2$.
+我们对`编码器如何将输入序列 "I want to buy a car EOS" 变换为上下文编码序列`这一过程进行一下可视化。与基于 RNN 的编码器类似，基于 transformer 的编码器也在输入序列最后添加了一个 EOS，以提示模型输入向量序列已结束 ${}^2$。
 
 ![](https://raw.githubusercontent.com/patrickvonplaten/scientific_images/master/encoder_decoder/Encoder_block.png)
 
@@ -258,7 +258,7 @@ $$ \mathbf{v}_i = \mathbf{W}_v \mathbf{x'}_i,$$
 $$ \mathbf{k}_i = \mathbf{W}_k \mathbf{x'}_i, $$
 $$ \forall i \in \{1, \ldots n \}$$
 
-请注意，对每个输入向量 $\mathbf{x}_i，\forall i \in \{i, \ldots, n\}$ 而言，其所使用的权重矩阵都是**相同**的。将每个输入向量 $\mathbf{x}_i$ 投影到 `query`、`key` 和 `value` 向量后，将每个 `query` 向量 $\mathbf{q}_j, \forall j \in \{1, \ldots, n\}$ 与所有 `key` 向量 $\mathbf{k}_1, \ldots, \mathbf{k}_n$ 进行比较。哪个 `key` 向量与 `query` 向量 $\mathbf{q}_j$ 越相似，其对应的 `value` 向量 $\mathbf{v}_j$ 对输出向量 $\mathbf{x''}_j$ 的影响就越重要。更具体地说，输出向量 $\mathbf{x''}_j$ 被定义为所有 `value` 向量的加权和 $\mathbf{v}_1, \ldots, \mathbf{v}_n$ 加上输入向量 $\mathbf{x'}_j$。而各 `value` 向量的权重与 $\mathbf{q}_j$ 和各个 `key` 向量 $\mathbf{k}_1, \ldots, \mathbf{k}_n$ 之间的余弦相似度成正比，其数学公式为 $\textbf{Softmax}(\mathbf{K}_{1:n}^\intercal \mathbf{q}_j)$，如下文的公式所示。关于自注意力层的完整描述，建议读者阅读[这篇](http://jalammar.github.io/illustrated-transformer/)博文或[原始论文](https://arxiv.org/abs/1706.03762)。
+请注意，对每个输入向量 $\mathbf{x}_i（\forall i \in \{i, \ldots, n\}$）而言，其所使用的权重矩阵都是**相同**的。将每个输入向量 $\mathbf{x}_i$ 投影到 `query`、`key` 和 `value` 向量后，将每个 `query` 向量 $\mathbf{q}_j（\forall j \in \{1, \ldots, n\}$）与所有 `key` 向量 $\mathbf{k}_1, \ldots, \mathbf{k}_n$ 进行比较。哪个 `key` 向量与 `query` 向量 $\mathbf{q}_j$ 越相似，其对应的 `value` 向量 $\mathbf{v}_j$ 对输出向量 $\mathbf{x''}_j$ 的影响就越重要。更具体地说，输出向量 $\mathbf{x''}_j$ 被定义为所有 `value` 向量的加权和 $\mathbf{v}_1, \ldots, \mathbf{v}_n$ 加上输入向量 $\mathbf{x'}_j$。而各 `value` 向量的权重与 $\mathbf{q}_j$ 和各个 `key` 向量 $\mathbf{k}_1, \ldots, \mathbf{k}_n$ 之间的余弦相似度成正比，其数学公式为 $\textbf{Softmax}(\mathbf{K}_{1:n}^\intercal \mathbf{q}_j)$，如下文的公式所示。关于自注意力层的完整描述，建议读者阅读[这篇](http://jalammar.github.io/illustrated-transformer/)博文或[原始论文](https://arxiv.org/abs/1706.03762)。
 
 好吧，又复杂起来了。我们以上例中的一个 `query` 向量为例图解一下双向自注意层。为简单起见，本例中假设我们的*基于 transformer* 的解码器只有一个注意力头 `config.num_heads = 1` 并且没有归一化层。
 
@@ -266,7 +266,7 @@ $$ \forall i \in \{1, \ldots n \}$$
 
 图左显示了上个例子中的第二个编码器模块，右边详细可视化了第二个输入向量 $\mathbf{x'}_2$ 的双向自注意机制，其对应输入词为 "want"。首先将所有输入向量 $\mathbf{x'}_1, \ldots, \mathbf{x'}_7$ 投影到它们各自的 `query` 向量 $\mathbf{q}_1, \ldots, \mathbf{q}_7$（上图中仅以紫色显示前三个 `query` 向量），`value` 向量 $\mathbf{v}_1, \ldots, \mathbf{v}_7$（蓝色) 和 `key` 向量 $\mathbf{k}_1, \ldots, \mathbf{k}_7$（橙色）。然后，将 `query` 向量 $\mathbf{q}_2$ 与所有 `key` 向量的转置（*即* $\mathbf{K}_{1:7}^{\intercal}$）相乘，随后进行 softmax 操作以产生*自注意力权重*。 自注意力权重最终与各自的 `value` 向量相乘，并加上输入向量 $\mathbf{x'}_2$，最终输出单词 "want" 的上下文相关表征， *即* $\mathbf{x''}_2$（图右深绿色表示）。整个等式显示在图右框的上部。 $\mathbf{K}_{1:7}^{\intercal}$ 和 $\mathbf{q}_2$ 的相乘使得将 "want" 的向量表征与所有其他输入（"I"，"to"，"buy"，"a"，"car"，"EOS"）的向量表征相比较成为可能，因此自注意力权重反映出每个输入向量 $\mathbf{x'}_j$ 对 "want" 一词的最终表征 $\mathbf{x''}_2$ 的重要程度。
 
-为了进一步理解双向自注意力层的含义，我们假设以下句子：“*房子很漂亮且位于市中心，因此那儿乘坐公共交通工具很方便*”。 “那儿”这个词指的是“房子”，这两个词相隔12个字。在基于 transformer 的编码器中，双向自注意力层运算一次，即可将“房子”的输入向量与“那儿”的输入向量相关联。相比之下，在基于 RNN 的编码器中，相距 12 个字的词将需要至少 12 个时间步的运算，这意味着在基于 RNN 的编码器中所需数学运算与距离呈线性关系。这使得基于 RNN 的编码器更难对长程上下文表征进行建模。此外，很明显，基于 transformer 的编码器比基于 RNN 的编码器-解码器模型更不容易丢失重要信息，因为编码的序列长度相对输入序列长度保持不变，*即* $\textbf{len }(\mathbf{X}_{1:n}) = \textbf{len}(\mathbf{\overline{X}}_{1:n}) = n$，而 RNN 则会将 $\textbf{len}((\mathbf{X}_{1:n}) = n$ 压缩到 $\textbf{len}(\mathbf{c}) = 1$，这使得 RNN 很难有效地对输入词之间的长程依赖关系进行编码。
+为了进一步理解双向自注意力层的含义，我们假设以下句子：“*房子很漂亮且位于市中心，因此那儿公共交通很方便*”。 “那儿”这个词指的是“房子”，这两个词相隔12个字。在基于 transformer 的编码器中，双向自注意力层运算一次，即可将“房子”的输入向量与“那儿”的输入向量相关联。相比之下，在基于 RNN 的编码器中，相距 12 个字的词将需要至少 12 个时间步的运算，这意味着在基于 RNN 的编码器中所需数学运算与距离呈线性关系。这使得基于 RNN 的编码器更难对长程上下文表征进行建模。此外，很明显，基于 transformer 的编码器比基于 RNN 的编码器-解码器模型更不容易丢失重要信息，因为编码的序列长度相对输入序列长度保持不变，*即* $\textbf{len }(\mathbf{X}_{1:n}) = \textbf{len}(\mathbf{\overline{X}}_{1:n}) = n$，而 RNN 则会将 $\textbf{len}((\mathbf{X}_{1:n}) = n$ 压缩到 $\textbf{len}(\mathbf{c}) = 1$，这使得 RNN 很难有效地对输入词之间的长程依赖关系进行编码。
 
 除了更容易学到长程依赖外，我们还可以看到 transformer 架构能够并行处理文本。从数学上讲，这是通过将自注意力机制表示为 `query`、`key` 和 `value` 的矩阵乘来完成的：
 
@@ -274,9 +274,9 @@ $$\mathbf{X''}_{1:n} = \mathbf{V}_{1:n} \text{Softmax}(\mathbf{Q}_{1:n}^\interca
 
 输出 $\mathbf{X''}_{1:n} = \mathbf{x''}_1, \ldots, \mathbf{x''}_n$ 是由一系列矩阵乘计算和 softmax 操作算得，因此可以有效地并行化。请注意，在基于 RNN 的编码器模型中，隐含状态 $\mathbf{c}$ 的计算必须按顺序进行：先计算第一个输入向量的隐含状态 $\mathbf{x} _1$；然后计算第二个输入向量的隐含状态，其取决于第一个隐含向量的状态，依此类推。RNN 的顺序性阻碍了有效的并行化，并使其在现代 GPU 硬件上比基于 transformer 的编码器模型的效率低得多。
 
-太好了，现在我们应该对 a) 基于 transformer 的编码器模型如何有效地建模长程上下文表征，以及 b) 它们如何有效地处理输入的长序列向量这两个方面有了比较好的理解了。
+太好了，现在我们应该对 a) 基于 transformer 的编码器模型如何有效地建模长程上下文表征，以及 b) 它们如何有效地处理长序列向量输入这两个方面有了比较好的理解了。
 
-现在，让我们写一个 `MarianMT` 编码器-解码器模型的编码器部分的小例子，以验证这些理论在实践中行不行得通。
+现在，我们写一个 `MarianMT` 编码器-解码器模型的编码器部分的小例子，以验证这些理论在实践中行不行得通。
 
 ------------------------------------------------------------------------
 
@@ -316,7 +316,7 @@ print("Is encoding for `I` equal to its perturbed version?: ", torch.allclose(en
     Is encoding for `I` equal to its perturbed version?:  False
 ```
 
-我们比较一下输入词嵌入的序列长度（*即* `embeddings(input_ids)`，对应于 $\mathbf{X}_{1:n}$）和 `encoder_hidden_​​states` 的长度（对应于$\mathbf{\overline{X}}_{1:n}$）。同时，我们让编码器对单词序列"I want to buy a car" 及其轻微改动版 "I want to buy a house" 分别执行前向操作，以检查第一个词 "I" 的输出编码在更改输入序列的最后一个单词后是否会有所不同。
+我们比较一下输入词嵌入的序列长度（*即* `embeddings(input_ids)`，对应于 $\mathbf{X}_{1:n}$）和 `encoder_hidden_​​states` 的长度（对应于$\mathbf{\overline{X}}_{1:n}$）。同时，我们让编码器对单词序列 "I want to buy a car" 及其轻微改动版 "I want to buy a house" 分别执行前向操作，以检查第一个词 "I" 的输出编码在更改输入序列的最后一个单词后是否会有所不同。
 
 不出意外，输入词嵌入和编码器输出编码的长度，*即* $\textbf{len}(\mathbf{X}_{1:n})$ 和 $\textbf{len }(\mathbf{\overline{X}}_{1:n})$，是相等的。同时，可以注意到当最后一个单词从 "car" 改成 "house" 后，$\mathbf{\overline{x}}_1 = \text{"I"}$ 的编码输出向量的值也改变了。因为我们现在已经理解了双向自注意力机制，这就不足为奇了。
 
@@ -332,7 +332,7 @@ $$ p_{\theta_{dec}}(\mathbf{Y}_{1: m} | \mathbf{\overline{X}}_{1:n}) $$
 
 $$ p_{\theta_{dec}}(\mathbf{Y}_{1:m} | \mathbf{\overline{X}}_{1:n}) = \prod_{i=1}^{m} p_{\theta_{dec}}(\mathbf{y}_i | \mathbf{Y}_{0: i-1}, \mathbf{\overline{X}}_{1:n}) $$
 
-我们首先了解一下基于 transformer 的解码器如何定义概率分布。基于 transformer 的解码器由很多*解码器模块*堆叠而成，最后再加一个线性层（即 “LM 头”）。这些解码器模块的堆叠将上下文相关的编码序列 $\mathbf{\overline{X}}_{1:n}$ 和每个目标向量的前驱输入 $\mathbf{Y}_{0:i-1}$（这里$\mathbf{y}_0$为 BOS）映射为目标向量的编码序列 $\mathbf{\overline{Y} }_{1: i}$。然后，“LM 头”将目标向量的编码序列 $\mathbf{\overline{Y}}_{0: i-1}$ 映射到 logit 向量序列 $\mathbf {L}_{1:n} = \mathbf{l}_1, \ldots, \mathbf{l}_n$, 而每个 logit 向量$\mathbf{l}_i$ 的维度即为词表的词汇量。这样，对于每个 $i \in \{1, \ldots, n\}$，其在整个词汇表上的概率分布可以通过对 $\mathbf{l}_i$ 取 softmax 获得。公式如下：
+我们首先了解一下基于 transformer 的解码器如何定义概率分布。基于 transformer 的解码器由很多*解码器模块*堆叠而成，最后再加一个线性层（即 “LM 头”）。这些解码器模块的堆叠将上下文相关的编码序列 $\mathbf{\overline{X}}_{1:n}$ 和每个目标向量的前驱输入 $\mathbf{Y}_{0:i-1}$（这里 $\mathbf{y}_0$ 为 BOS）映射为目标向量的编码序列 $\mathbf{\overline{Y} }_{0:i-1}$。然后，“LM 头”将目标向量的编码序列 $\mathbf{\overline{Y}}_{0:i-1}$ 映射到 logit 向量序列 $\mathbf {L}_{1:n} = \mathbf{l}_1, \ldots, \mathbf{l}_n$, 而每个 logit 向量$\mathbf{l}_i$ 的维度即为词表的词汇量。这样，对于每个 $i \in \{1, \ldots, n\}$，其在整个词汇表上的概率分布可以通过对 $\mathbf{l}_i$ 取 softmax 获得。公式如下：
 
 $$p_{\theta_{dec}}(\mathbf{y}_i | \mathbf{Y}_{0: i-1}, \mathbf{\overline{X}}_{1:n}), \forall i \in \{1, \ldots, n\}$$
 
@@ -347,13 +347,13 @@ $$ = \text{Softmax}(\mathbf{l}_i) $$
 
 $$ p_{\theta_{dec}}(\mathbf{Y}_{1:m} | \mathbf{\overline{X}}_{1:n}) = \prod_{i=1}^{m} p_{\theta_{dec}}(\mathbf{y}_i | \mathbf{Y}_{0: i-1}, \mathbf{\overline{X}}_{1:n}).$$
 
-与基于 transformer 的编码器不同，在基于 transformer 的解码器中，其输出向量 $\mathbf{\overline{y}}_i$ 应该能很好地表征*下一个*目标向量 $\mathbf{y}_{i+1}$，而不是输入向量本身。此外，输出向量 $\mathbf{\overline{y}}_i$ 应基于编码器的整个输出序列 $\mathbf{\overline{X}}_{1:n}$。为了满足这些要求，每个解码器块都包含一个**单向**自注意层，紧接着是一个**交叉注意**层，最后是两个前馈层${}^2$。单向自注意层将其每个输入向量 $\mathbf{y'}_j$ 仅与其前驱输入向量 $\mathbf{y'}_i$（其中 $i \le j$，且 $j \in \{1, \ldots, n\}$） 相关联，来模拟下一个目标向量的概率分布。交叉注意层将其每个输入向量 $\mathbf{y''}_j$ 与编码器输出的所有向量 $\mathbf{\overline{X}}_{1:n}$ 相关联，来根据编码器输入预测下一个目标向量的概率分布。
+与基于 transformer 的编码器不同，在基于 transformer 的解码器中，其输出向量 $\mathbf{\overline{y}}_{i-1}$ 应该能很好地表征*下一个*目标向量（即 $\mathbf{y}_i$），而不是输入向量本身（即 $\mathbf{y}_{i-1}$）。此外，输出向量 $\mathbf{\overline{y}}_{i-1}$ 应基于编码器的整个输出序列 $\mathbf{\overline{X}}_{1:n}$。为了满足这些要求，每个解码器块都包含一个**单向**自注意层，紧接着是一个**交叉注意**层，最后是两个前馈层${}^2$。单向自注意层将其每个输入向量 $\mathbf{y'}_j$ 仅与其前驱输入向量 $\mathbf{y'}_i$（其中 $i \le j$，且 $j \in \{1, \ldots, n\}$） 相关联，来模拟下一个目标向量的概率分布。交叉注意层将其每个输入向量 $\mathbf{y''}_j$ 与编码器输出的所有向量 $\mathbf{\overline{X}}_{1:n}$ 相关联，来根据编码器输入预测下一个目标向量的概率分布。
 
 好，我们仍以英语到德语翻译为例可视化一下*基于 transformer* 的解码器。
 
 ![](https://raw.githubusercontent.com/patrickvonplaten/scientific_images/master/encoder_decoder/encoder_decoder_detail.png)
 
-我们可以看到解码器将 $\mathbf{Y}_{0:5}$： "BOS"、"Ich"、"will"、"ein"、"Auto"、"kaufen"（图中以浅红色显示）和 "I"、"want"、"to"、"buy"、"a"、"car", "EOS"（*即* $\mathbf{\overline{X}}_{1:7}$（图中以深绿色显示））映射到 logit 向量 $\mathbf{L}_{1:6}$（图中以深红色显示）。
+我们可以看到解码器将 $\mathbf{Y}_{0:5}$： "BOS"、"Ich"、"will"、"ein"、"Auto"、"kaufen"（图中以浅红色显示）和 "I"、"want"、"to"、"buy"、"a"、"car"、"EOS"（*即* $\mathbf{\overline{X}}_{1:7}$（图中以深绿色显示））映射到 logit 向量 $\mathbf{L}_{1:6}$（图中以深红色显示）。
 
 因此，对每个 $\mathbf{l}_1、\mathbf{l}_2、\ldots、\mathbf{l}_6$ 使用 softmax 操作可以定义下列条件概率分布：
 
@@ -392,7 +392,7 @@ $$\mathbf{y''}_i = \mathbf{V}_{0: i} \textbf{Softmax}(\mathbf{K}_{0: i}^\interca
 
 太棒了！现在我们可以转到连接编码器和解码器的层 - *交叉注意力*机制！
 
-交叉注意层将两个向量序列作为输入：单向自注意层的输出 $\mathbf{Y''}_{0: m-1}$ 和编码器的输出 $\mathbf{\overline{X}}_{1:n}$。与自注意力层一样，`query` 向量 $\mathbf{q}_0, \ldots, \mathbf{q}_{m-1}$ 是上一层输出向量 $\mathbf{Y''}_{0: m-1}$ 的投影。而 `key` 和 `value` 向量 $\mathbf{k}_0, \ldots, \mathbf{k}_{m-1}$、$\mathbf{v}_0, \ldots, \mathbf {v}_{m-1}$ 是编码器输出向量 $\mathbf{\overline{X}}_{1:n}$ 的投影。定义完 `key`、`value` 和 `query` 向量后，将 `query` 向量 $\mathbf{q}_i$ 与 *所有* `key` 向量进行比较，并用各自的得分对相应的 `value` 向量进行加权求和。这个过程与*双向*自注意力对所有 $i \in {0, \ldots, m-1}$ 求 $\mathbf{y'''}_i$ 是一样的。交叉注意力可以概括如下：
+交叉注意层将两个向量序列作为输入：单向自注意层的输出 $\mathbf{Y''}_{0: m-1}$ 和编码器的输出 $\mathbf{\overline{X}}_{1:n}$。与自注意力层一样，`query` 向量 $\mathbf{q}_0, \ldots, \mathbf{q}_{m-1}$ 是上一层输出向量 $\mathbf{Y''}_{0: m-1}$ 的投影。而 `key` 和 `value` 向量 $\mathbf{k}_0, \ldots, \mathbf{k}_{n-1}$、$\mathbf{v}_0, \ldots, \mathbf {v}_{n-1}$ 是编码器输出向量 $\mathbf{\overline{X}}_{1:n}$ 的投影。定义完 `key`、`value` 和 `query` 向量后，将 `query` 向量 $\mathbf{q}_i$ 与 *所有* `key` 向量进行比较，并用各自的得分对相应的 `value` 向量进行加权求和。这个过程与*双向*自注意力对所有 $i \in {0, \ldots, m-1}$ 求 $\mathbf{y'''}_i$ 是一样的。交叉注意力可以概括如下：
 
 $$
 \mathbf{y'''}_i = \mathbf{V}_{1:n} \textbf{Softmax}(\mathbf{K}_{1: n}^\intercal \mathbf{q}_i) + \mathbf{y''}_i
@@ -406,7 +406,7 @@ $$
 
 我们可以看到 `query` 向量 $\mathbf{q}_1$（紫色）源自 $\mathbf{y''}_1$（红色），因此其依赖于单词 "Ich" 的向量表征。然后将 `query` 向量 $\mathbf{q}_1$ 与对应的 `key` 向量 $\mathbf{k}_1, \ldots, \mathbf{k}_7$（黄色）进行比较，这里的 `key` 向量对应于编码器对其输入 $\mathbf{X}_{1:n}$ = \"I want to buy a car EOS\" 的上下文相关向量表征。这将 \"Ich\" 的向量表征与所有编码器输入向量直接关联起来。最后，将注意力权重乘以 `value` 向量 $\mathbf{v}_1, \ldots, \mathbf{v}_7$（青绿色）并加上输入向量 $\mathbf{y''}_1$ 最终得到输出向量 $\mathbf{y'''}_1$（深红色）。
 
-所以，直觉上来讲到底发生了什么？每个输出向量 $\mathbf{y'''}_i$ 是由所有从编码器来的 `value` 向量（$\mathbf{v}_{1}, \ldots, \mathbf{v }_7$ ）的加权和与输入向量本身 $\mathbf{y''}_i$ 相加而得（参见上图所示的公式）。其关键思想是：*来自解码器的* $\mathbf{q}_i$ 的 `query` 投影与 *来自编码器的 $\mathbf{k}_j$* 越相关，其对应的 $\mathbf{v}_j$ 对输出的影响越大。
+所以，直观而言，到底发生了什么？每个输出向量 $\mathbf{y'''}_i$ 是由所有从编码器来的 `value` 向量（$\mathbf{v}_{1}, \ldots, \mathbf{v }_7$ ）的加权和与输入向量本身 $\mathbf{y''}_i$ 相加而得（参见上图所示的公式）。其关键思想是：*来自解码器的* $\mathbf{q}_i$ 的 `query` 投影与 *来自编码器的 $\mathbf{k}_j$* 越相关，其对应的 $\mathbf{v}_j$ 对输出的影响越大。
 
 酷！现在我们可以看到这种架构的每个输出向量 $\mathbf{y'''}_i$ 取决于其来自编码器的输入向量 $\mathbf{\overline{X}}_{1 :n}$ 及其自身的输入向量 $\mathbf{y''}_i$。这里有一个重要的点，在该架构中，虽然输出向量 $\mathbf{y'''}_i$ 依赖来自编码器的输入向量 $\mathbf{\overline{X}}_{1:n}$，但其完全独立于该向量的数量 $n$。所有生成 `key` 向量 $\mathbf{k}_1, \ldots, \mathbf{k}_n$ 和 `value` 向量 $\mathbf{v}_1, \ldots, \mathbf{v}_n $ 的投影矩阵 $\mathbf{W}^{\text{cross}}_{k}$ 和 $\mathbf{W}^{\text{cross}}_{v}$ 都是与 $n$ 无关的，所有 $n$ 共享同一个投影矩阵。且对每个 $\mathbf{y'''}_i$，所有 `value` 向量 $\mathbf{v}_1, \ldots, \mathbf{v}_n$ 被加权求和至一个向量。至此，关于`为什么基于 transformer 的解码器没有远程依赖问题而基于 RNN 的解码器有`这一问题的答案已经很显然了。因为每个解码器 logit 向量*直接*依赖于每个编码后的输出向量，因此比较第一个编码输出向量和最后一个解码器 logit 向量只需一次操作，而不像 RNN 需要很多次。
 
@@ -466,7 +466,7 @@ print("Is encoding for `Ich` equal to its perturbed version?: ", torch.allclose(
 
 正如预期的那样，解码器输入词嵌入和 lm_logits 的输出，*即* $\mathbf{Y}_{0: 4}$ 和 $\mathbf{L}_{ 1:5}$ 的最后一个维度不同。虽然序列长度相同（=5），但解码器输入词嵌入的维度对应于 `model.config.hidden_​​size`，而 `lm_logit` 的维数对应于词汇表大小 `model.config.vocab_size`。其次，可以注意到，当将最后一个单词从 "ein" 变为 "das"，$\mathbf{l}_1 = \text{"Ich"}$ 的输出向量的值不变。鉴于我们已经理解了单向自注意力，这就不足为奇了。
 
-最后一点，*自回归*模型，如 GPT2，具有与删除了交叉注意力层的*基于 transformer* 的解码器模型相同的架构，因为纯自回归模型不依赖任何编码器的输出。因此，自回归模型本质上与*自编码*模型相同，只是用单向注意力代替了双向注意力。这些模型还可以在大量开放域文本数据上进行预训练，以在自然语言生成 (NLG) 任务中表现出令人印象深刻的性能。在 [Radford 等（2019）](https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf)的工作中，作者表明预训练的 GPT2 模型无需太多微调即可在多种 NLG 任务上取得达到 SOTA 或接近 SOTA 的结果。你可以在[此处](https://huggingface.co/transformers/model_summary.html#autoregressive-models)获取所有 🤗 transformers 支持的*自回归*模型的信息。
+最后一点，*自回归*模型，如 GPT2，与删除了交叉注意力层的*基于 transformer* 的解码器模型架构是相同的，因为纯自回归模型不依赖任何编码器的输出。因此，自回归模型本质上与*自编码*模型相同，只是用单向注意力代替了双向注意力。这些模型还可以在大量开放域文本数据上进行预训练，以在自然语言生成 (NLG) 任务中表现出令人印象深刻的性能。在 [Radford 等（2019）](https://cdn.openai.com/better-language-models/language_models_are_unsupervised_multitask_learners.pdf)的工作中，作者表明预训练的 GPT2 模型无需太多微调即可在多种 NLG 任务上取得达到 SOTA 或接近 SOTA 的结果。你可以在[此处](https://huggingface.co/transformers/model_summary.html#autoregressive-models)获取所有 🤗 transformers 支持的*自回归*模型的信息。
 
 好了！至此，你应该已经很好地理解了*基于 transforemr* 的编码器-解码器模型以及如何在 🤗 transformers 库中使用它们。
 
