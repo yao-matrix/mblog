@@ -323,7 +323,7 @@ impossible_outputs == [
 
 与上述这些工作一样，还有许多新的研究正在探索如何使用外部知识（例如 KG（Knowledge Graph）、KB（Knowledge Base））来指导大型深度学习模型输出。我们希望约束波束搜索功能成为实现此目的的有效方法之一。
 
-感谢所有为此功能提供指导的人：Patrick von Platen 参与了从 [初始问题]讨论(https://github.com/huggingface/transformers/issues/14081) 到 [最终 PR](https://github.com/huggingface/transformers/pull/15761) 的全过程，还有 Narsil Patry，他们二位对代码进行了详细的反馈。
+感谢所有为此功能提供指导的人：Patrick von Platen 参与了从[初始问题](https://github.com/huggingface/transformers/issues/14081)讨论到[最终 PR](https://github.com/huggingface/transformers/pull/15761) 的全过程，还有 Narsil Patry，他们二位对代码进行了详细的反馈。
 
 *本文使用的图标来自于<a href="https://www.flaticon.com/free-icons/shorthand" title="shorthand icons"> Freepik - Flaticon</a>。*
 
