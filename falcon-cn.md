@@ -281,7 +281,7 @@ trainer.train()
 
 你还可以查看 [原始 QLoRA 代码库](https://github.com/artidoro/qlora/)，以了解有关如何评估训练模型的更多详细信息。
 
-### 关于微调的资源
+### 关于微调的更多资源
 
 - **[使用 4 比特量化和 PEFT 在 Guanaco 数据集上微调 Falcon-7B 的 Colab notebook](https://colab.research.google.com/drive/1BiQiw31DT7-cDp1-0ySXvvhzqomTdI-o?usp=sharing)** 
 - **[训练代码](https://gist.github.com/pacman100/1731b41f7a90a87b457e8c5415ff1c14)** 
