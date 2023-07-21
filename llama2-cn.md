@@ -42,7 +42,7 @@ translators:
 
 Llama 2 引入了一系列预训练和微调 LLM，参数量范围从 7B 到 70B（7B、13B、70B）。其预训练模型比 Llama 1 模型有了显著改进，包括训练数据的总词元数增加了 40%、上下文长度更长（4k 词元🤯），以及利用了分组查询注意力机制来加速 70B 模型的推理🔥！
 
-但最令人兴奋的还是其发布的微调模型（Llama 2-Chat），该模型已使用[基于人类反馈的强化学习（Reinforcement Learning from Human Feedback，RLHF）](https://huggingface.co/blog/rlhf)技术针对对话场景进行了优化。在相当广泛的有用性和安全性测试基准中，Llama 2-Chat 模型的表现优于大多数开放模型，且其在人类评估中表现出与 ChatGPT 相当的性能。
+但最令人兴奋的还是其发布的微调模型（Llama 2-Chat），该模型已使用[基于人类反馈的强化学习（Reinforcement Learning from Human Feedback，RLHF）](https://huggingface.co/blog/rlhf)技术针对对话场景进行了优化。在相当广泛的有用性和安全性测试基准中，Llama 2-Chat 模型的表现优于大多数开放模型，且其在人类评估中表现出与 ChatGPT 相当的性能。更多详情，可参阅其[论文](https://huggingface.co/papers/2307.09288)。
 
 ![模型训练与微调工作流](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/blog/llama-rlhf.png)
 
@@ -146,7 +146,7 @@ Of course! If you enjoyed "Breaking Bad" and "Band of Brothers," here are some o
 
 - 要推理 7B 模型，我们建议你选择 “GPU [medium] - 1x Nvidia A10G”。
 - 要推理 13B 模型，我们建议你选择 “GPU [xlarge] - 1x Nvidia A100”。
-- 要推理 70B 模型，我们建议你选择 “GPU [xxlarge] - 8x Nvidia A100”。
+- 要推理 70B 模型，我们建议你选择 “GPU [xxxlarge] - 8x Nvidia A100”。
 
 *注意：如果你配额不够，请发送邮件至 **[api-enterprise@huggingface.co](mailto:api-enterprise@huggingface.co)** 申请升级配额，通过后你就可以访问 A100 了。*
 
@@ -156,20 +156,29 @@ Of course! If you enjoyed "Breaking Bad" and "Band of Brothers," here are some o
 
 训练 LLM 在技术和计算上都有一定的挑战。本节，我们将介绍 Hugging Face 生态中有哪些工具可以帮助开发者在简单的硬件上高效训练 Llama 2，我们还将展示如何在单张 NVIDIA T4（16GB - Google Colab）上微调 Llama 2 7B 模型。你可以通过[让 LLM 更可得](https://huggingface.co/blog/4bit-transformers-bitsandbytes)这篇博文了解更多信息。
 
-我们构建了一个[脚本](https://gist.github.com/younesbelkada/9f7f75c94bdc1981c8ca5cc937d4a4da)，其中使用了 QLoRA 和 `trl` 中的 `SFTTrainer` 来对 Llama 2 进行指令微调。
+我们构建了一个[脚本](https://github.com/lvwerra/trl/blob/main/examples/scripts/sft_trainer.py)，其中使用了 QLoRA 和 [`trl`](https://github.com/lvwerra/trl) 中的 [`SFTTrainer`]((https://huggingface.co/docs/trl/v0.4.7/en/sft_trainer)) 来对 Llama 2 进行指令微调。
 
 下面的命令给出了在 `timdettmers/openassistant-guanaco` 数据集上微调 Llama 2 7B 的一个示例。该脚本可以通过 `merge_and_push` 参数将 LoRA 权重合并到模型权重中，并将其保存为 `safetensor` 格式。这样，我们就能使用 TGI 和推理终端部署微调后的模型。
 
-```python
-python finetune_llama_v2.py \
---model_name meta-llama/Llama-2-7b-hf \
---dataset_name timdettmers/openassistant-guanaco \
---use_4bit \
---merge_and_push
+首先安装 `trl` 包并下载脚本：
+```bash
+pip install trl
+git clone https://github.com/lvwerra/trl
+```
+
+然后，你就可以运行脚本了：
+```bash
+python trl/examples/scripts/sft_trainer.py \
+    --model_name meta-llama/Llama-2-7b-hf \
+    --dataset_name timdettmers/openassistant-guanaco \
+    --load_in_4bit \
+    --use_peft \
+    --batch_size 4 \
+    --gradient_accumulation_steps 2
 ```
 
 ## 其他资源
-
+- [论文](https://huggingface.co/papers/2307.09288)
 - [Hub 上的模型](https://huggingface.co/meta-llama)
 - [Open LLM 排行榜](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard)
 - [Meta 提供的 Llama 2 模型使用大全](https://github.com/facebookresearch/llama-recipes/tree/main)
