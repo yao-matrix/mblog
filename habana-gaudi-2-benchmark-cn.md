@@ -129,7 +129,7 @@ translators:
 
 ### 相关话题
 
-- [基于 Habana Gaudi 的 Transformers 入门](https://huggingface.co/blog/getting-started-habana)
+- [基于 Habana Gaudi 的 Transformers 入门](https://huggingface.co/blog/zh/getting-started-habana)
 - [与 Hugging Face 和 Habana Labs 一起加速 transformer 模型的训练（网络研讨会）](https://developer.habana.ai/events/accelerate-transformer-model-training-with-hugging-face-and-habana-labs/)
 
 ---
