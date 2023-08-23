@@ -91,7 +91,7 @@ $$ p(\mathbf{y}_i | \mathbf{l}_i) = \textbf{Softmax}(\mathbf{l}_i), \text{ 其�
 更多有关 logit 向量及其生成的概率分布的详细信息，请参阅脚注 ${}^4$。从上式可以看出，目标向量 $\mathbf{y}_i$ 的分布是其前一时刻的目标向量 $\mathbf{y}_{i-1}$ 及前一时刻的隐含状态 $\mathbf{c}_{i-1}$ 的条件分布。而我们知道前一时刻的隐含状态 $\mathbf{c}_{i-1}$ 依赖于之前所有的目标向量 $\mathbf{y}_0, \ldots, \mathbf{y}_{i- 2}$，因此我们可以说 RNN 解码器*隐式*（*或间接*）地建模了条件分布
 $p_{\theta_{\text{dec}}}(\mathbf{y}_i | \mathbf{Y}_{0: i-1}, \mathbf{c})$。
 
-目标向量序列 $\mathbf{Y}_{1:m}$ 的概率空间非常大，因此在推理时，必须借助解码方法对= ${}^5$ 对 $p_{\theta_{dec}}(\mathbf{Y}_{1:m} |\mathbf{c})$ 进行采样才能高效地生成最终的目标向量序列。
+目标向量序列 $\mathbf{Y}_{1:m}$ 的概率空间非常大，因此在推理时，必须借助解码方法 ${}^5$ 对 $p_{\theta_{dec}}(\mathbf{Y}_{1:m} |\mathbf{c})$ 进行采样才能高效地生成最终的目标向量序列。
 
 给定某解码方法，在推理时，我们首先从分布 $p_{\theta_{\text{dec}}}(\mathbf{y}_i | \mathbf{Y}_{0: i-1}, \mathbf{c})$ 中采样出下一个输出向量；接着，将其添加至解码器输入序列末尾，让解码器 RNN 继续从
 $p_{\theta_{\text{dec}}}(\mathbf{y}_{i+1} | \mathbf{Y}_{0: i}, \mathbf{c})$ 中采样出下一个输出向量 $\mathbf{y}_{i+1}$，如此往复，整个模型就以*自回归*的方式生成了最终的输出序列。
