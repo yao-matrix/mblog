@@ -34,7 +34,8 @@ translators:
 - [推理](#推理)
     - [用 transformers](#用-transformers)
     - [用 TGI 和推理终端](#用-TGI-和推理终端)
-- [用-PEFT-微调](#用-PEFT-微调)
+- [用 PEFT 微调](#用-PEFT-微调)
+- [如何提示 Llama 2](#如何提示-Llama-2)
 - [其他资源](#其他资源)
 - [总结](#总结)
 
@@ -176,12 +177,64 @@ python trl/examples/scripts/sft_trainer.py \
     --batch_size 4 \
     --gradient_accumulation_steps 2
 ```
+## 如何提示 Llama 2
+
+开放模型的一个被埋没的优势是你可以完全控制聊天应用程序中的`系统`提示。这对于指定聊天助手的行为至关重要，甚至能赋予它一些个性，这是仅提供 API 调用的模型无法实现的。
+
+在 Llama 2 首发几天后，我们决定加上这一部分，因为社区向我们提出了许多关于如何提示模型以及如何更改系统提示的问题。希望这部分能帮得上忙！
+
+第一轮的提示模板如下：
+
+```
+<s>[INST] <<SYS>>
+{{ system_prompt }}
+<</SYS>>
+
+{{ user_message }} [/INST]
+```
+
+此模板与模型训练时使用的模板一致，具体可见 [Llama 2 论文](https://huggingface.co/papers/2307.09288)。我们可以使用任何我们想要的 `system_prompt`，但格式须与训练时使用的格式一致。
+
+再说明白一点，以下是用户在使用[我们的 13B 模型聊天演示](https://huggingface.co/spaces/huggingface-projects/llama-2-13b-chat) 聊天且输入 `There's a llama in my garden 😱 What should I do?` 时，我们真正发送给语言模型的内容：
+
+```b
+<s>[INST] <<SYS>>
+You are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.  Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.
+
+If a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.
+<</SYS>>
+
+There's a llama in my garden 😱 What should I do? [/INST]
+```
+
+如你所见，成对的 `<<sys>>` 标记之间的指令为模型提供了上下文，即告诉模型我们期望它如何响应。这很有用，因为在训练过程中我们也使用了完全相同的格式，并针对不同的任务对各种各样的系统提示对模型进行了训练。
+
+随着对话的进行，我们会把人类和“机器人”之间的交互历史附加到之前的提示中，并包含在 `[INST]` 分隔符之间。多轮对话期间使用的模板遵循以下结构（🎩 感谢 [Arthur Zucker](https://huggingface.co/ArthurZ) 的解释）：
+
+```b
+<s>[INST] <<SYS>>
+{{ system_prompt }}
+<</SYS>>
+
+{{ user_msg_1 }} [/INST] {{ model_answer_1 }} </s><s>[INST] {{ user_msg_2 }} [/INST]
+```
+
+模型本身是无状态的，不会“记住”之前的对话片段，我们必须始终为其提供所有上下文，以便对话可以继续。这就是为什么我们一直强调模型的**上下文长度**非常重要且越大越好，因为只有这样才能支持更长的对话和更多的信息。
+
+### 忽略之前的指令
+
+在使用仅提供 API 调用的模型时，人们会采用一些技巧来尝试覆盖系统提示并更改模型的默认行为。尽管这些解决方案富有想象力，但开放模型完全不必如此：任何人都可以使用不同的提示，只要它遵循上述格式即可。我们相信，这将成为研究人员研究提示对所需或不需的模型行为的影响的重要工具。例如，当人们[对谨慎到荒谬的生成文本感到惊讶](https://twitter.com/lauraruis/status/1681612002718887936)时，你可以探索是否[不同的提示能帮得上忙](https://twitter.com/overlordayn/status/1681631554672513025)。（🎩 感谢 [Clémentine Fourrier](https://huggingface.co/clefourrier) 提供这个例子的链接）。
+
+在我们的 [`13B`](https://huggingface.co/spaces/huggingface-projects/llama-2-13b-chat) 和 [`7B`](https://huggingface.co/spaces/huggingface-projects/llama-2-7b-chat) 演示中，你可以在 UI 上点开“高级选项”并简单编写你自己的指令，从而轻松探索此功能。你还可以复制这些演示并用于你个人的娱乐或研究！
 
 ## 其他资源
 - [论文](https://huggingface.co/papers/2307.09288)
 - [Hub 上的模型](https://huggingface.co/meta-llama)
 - [Open LLM 排行榜](https://huggingface.co/spaces/HuggingFaceH4/open_llm_leaderboard)
 - [Meta 提供的 Llama 2 模型使用大全](https://github.com/facebookresearch/llama-recipes/tree/main)
+- [聊天演示 (7B)](https://huggingface.co/spaces/huggingface-projects/llama-2-7b-chat)
+- [聊天演示(13B)](https://huggingface.co/spaces/huggingface-projects/llama-2-13b-chat)
+- [基于 TGI 的聊天演示 (70B)](https://huggingface.co/spaces/ysharma/Explore_llamav2_with_TGI)
 
 ## 总结
 
