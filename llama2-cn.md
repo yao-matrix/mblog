@@ -32,9 +32,9 @@ translators:
 - [何以 Llama 2?](#何以-llama-2)
 - [演示](#演示)
 - [推理](#推理)
-    - [用 transformers](#用-transformers)
-    - [用 TGI 和推理终端](#用-TGI-和推理终端)
-- [用 PEFT 微调](#用-PEFT-微调)
+    - [使用 transformers](#使用-transformers)
+    - [使用 TGI 和推理终端](#使用-tgi-和推理终端)
+- [使用 PEFT 微调](#使用-peft-微调)
 - [如何提示 Llama 2](#如何提示-Llama-2)
 - [其他资源](#其他资源)
 - [总结](#总结)
@@ -82,7 +82,7 @@ Llama 2 引入了一系列预训练和微调 LLM，参数量范围从 7B 到 70B
 
 **注意：请务必按照页面上的指示填写 Meta 官方表格。填完两个表格数小时后，用户就可以访问模型存储库。
 
-### 用 transformers
+### 使用 transformers
 
 从 transformers [4.31](https://github.com/huggingface/transformers/releases/tag/v4.31.0) 版本开始，HF 生态中的所有工具和机制都可以适用于 Llama 2，如：
 
@@ -139,7 +139,7 @@ Of course! If you enjoyed "Breaking Bad" and "Band of Brothers," here are some o
 
 另外，尽管模型本身的上下文长度*仅* 4k 词元，但你可以使用 `transformers` 支持的技术，如旋转位置嵌入缩放（rotary position embedding scaling）（[推特](https://twitter.com/joao_gante/status/1679775399172251648)），进一步把它变长！
 
-### 用 TGI 和推理终端
+### 使用 TGI 和推理终端
 
 **[Text Generation Inference（TGI）](https://github.com/huggingface/text-generation-inference)** 是 Hugging Face 开发的生产级推理容器，可用于轻松部署大语言模型。它支持流式组批、流式输出、基于张量并行的多 GPU 快速推理，并支持生产级的日志记录和跟踪等功能。
 
@@ -153,7 +153,7 @@ Of course! If you enjoyed "Breaking Bad" and "Band of Brothers," here are some o
 
 你还可以从我们的另一篇博文中了解更多有关[如何使用 Hugging Face 推理终端部署 LLM](https://huggingface.co/blog/zh/inference-endpoints-llm) 的知识, 文中包含了推理终端支持的超参以及如何使用其 Python 和 Javascript API 实现流式输出等信息。
 
-## 用 PEFT 微调
+## 使用 PEFT 微调
 
 训练 LLM 在技术和计算上都有一定的挑战。本节，我们将介绍 Hugging Face 生态中有哪些工具可以帮助开发者在简单的硬件上高效训练 Llama 2，我们还将展示如何在单张 NVIDIA T4（16GB - Google Colab）上微调 Llama 2 7B 模型。你可以通过[让 LLM 更可得](https://huggingface.co/blog/4bit-transformers-bitsandbytes)这篇博文了解更多信息。
 
