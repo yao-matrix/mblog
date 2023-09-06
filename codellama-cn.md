@@ -21,7 +21,7 @@ translators:
 
 ## 引言
 
-Code Llama 是为代码类任务而生的一组最先进的、开放的 [Llama 2](https://huggingface.co/blog/llama2) 模型，我们很高兴能将其集成入 Hugging Face 生态系统！Code Llama 使用与 Llama 2 相同的社区许可证，且可商用。
+Code Llama 是为代码类任务而生的一组最先进的、开放的 [Llama 2](https://huggingface.co/blog/zh/llama2) 模型，我们很高兴能将其集成入 Hugging Face 生态系统！Code Llama 使用与 Llama 2 相同的社区许可证，且可商用。
 
 今天，我们很高兴能发布 Hugging Face 对 Code Llama 的全面支持, 包括：
 
@@ -207,7 +207,7 @@ def remove_non_ascii(s: str) -> str:
 
 如上所述，基础模型可用于补全和填充。Code Llama 还包含一个适用于对话场景的指令微调模型。
 
-为此类任务准备输入时，我们需要一个提示模板。一个例子是我们在 [Llama 2 博文](https://huggingface.co/blog/zh/llama2#如何提示-Llama-2) 中描述的模板，如下：
+为此类任务准备输入时，我们需要一个提示模板。一个例子是我们在 [Llama 2 博文](https://huggingface.co/blog/zh/llama2#如何提示-Llama-2)中描述的模板，如下：
 
 ```
 <s>[INST] <<SYS>>
@@ -242,7 +242,7 @@ inputs = tokenizer(prompt, return_tensors="pt", add_special_tokens=False).to("cu
 
 3. **含对话历史的多轮对话**
 
-该过程与 [Llama 2](https://huggingface.co/blog/zh/llama2#how-to-prompt-llama-2) 中的过程相同。为了最清楚起见，我们没有使用循环或泛化此示例代码：
+该过程与 [Llama 2](https://huggingface.co/blog/zh/llama2#如何提示-Llama-2) 中的过程相同。为了最清楚起见，我们没有使用循环或泛化此示例代码：
 
 ```python
 system = "System prompt"
@@ -309,7 +309,7 @@ print(tokenizer.decode(output))
 
 *注意：你可能需要发邮件给 **[api-enterprise@huggingface.co](mailto:api-enterprise@huggingface.co)** 申请配额升级才能访问 A100*
 
-你可以在我们的博文中详细了解如何[使用 Hugging Face 推理终端部署 LLM](https://huggingface.co/blog/zh/inference-endpoints-llm)，该[博文](https://huggingface.co/blog/inference-endpoints-llm)还包含了有关其支持的超参以及如何使用 Python 和 Javascript API 流式生成文本的相关知识。
+你可以在我们的博文中详细了解如何[使用 Hugging Face 推理终端部署 LLM](https://huggingface.co/blog/zh/inference-endpoints-llm)，该[博文](https://huggingface.co/blog/zh/inference-endpoints-llm)还包含了有关其支持的超参以及如何使用 Python 和 Javascript API 流式生成文本的相关知识。
 
 ## 评估
 
