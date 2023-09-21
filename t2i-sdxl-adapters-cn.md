@@ -1,5 +1,5 @@
 ---
-title: "在 SDXL 上应用 T2I-Adapter 实现高效可控的文生图"
+title: "在 SDXL 上用 T2I-Adapter 实现高效可控的文生图"
 thumbnail: /blog/assets/t2i-sdxl-adapters/thumbnail.png
 authors:
 - user: Adapter
@@ -13,7 +13,7 @@ translators:
 - user: MatrixYao
 ---
 
-# 在 SDXL 上应用 T2I-Adapter 实现高效可控的文生图
+# 在 SDXL 上用 T2I-Adapter 实现高效可控的文生图
 
 <!-- {blog_metadata} -->
 <!-- {authors} -->
