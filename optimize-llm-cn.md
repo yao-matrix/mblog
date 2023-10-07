@@ -743,4 +743,3 @@ GPT3/4、Llama-2-70b、Claude、PaLM 等海量 LLM 能够在 [Hugging Face Chat]
 > 英文原文: <url> https://huggingface.co/blog/optimize-llm </url>
 > 原文作者：Patrick von Platen
 > 译者: Matrix Yao (姚伟峰)，英特尔深度学习工程师，工作方向为 transformer-family 模型在各模态数据上的应用及大规模模型的训练推理。
-
