@@ -95,7 +95,7 @@ Kaggle 的调查也呼应了 transformer 模型的崛起。它们的使用量逐
   <img src="assets/31_age_of_ml_as_code/06_big_science.png">
 </kbd>
 
-你还可以对另外 [16000 多个模型](https://huggingface.co/models) 和 [1600 多个数据集](https://huggingface.co/datasets) 做同样的事情。进一步地，你还可以用我们提供的其他工具进行[推理](https://huggingface.co/inference-api)、[AutoNLP](https://huggingface.co/autonlp)、[延迟优化](https://huggingface.co/infinity)及[硬件加速](https://huggingface.co/hardware)。我们甚至还能帮你启动项目，完成[从建模到生产](https://huggingface.co/support)的全过程。
+你还可以对另外 [16000 多个模型](https://huggingface.co/models)以及 [1600 多个数据集](https://huggingface.co/datasets)做同样的事情。进一步地，你还可以用我们提供的其他工具进行[推理](https://huggingface.co/inference-api)、[AutoNLP](https://huggingface.co/autonlp)、[延迟优化](https://huggingface.co/infinity)及[硬件加速](https://huggingface.co/hardware)。我们甚至还能帮你启动项目，完成[从建模到生产](https://huggingface.co/support)的全过程。
 
 Hugging Face 的使命是让机器学习对初学者和专家来说都尽可能友好且高效。
 
@@ -109,13 +109,13 @@ Hugging Face 的使命是让机器学习对初学者和专家来说都尽可能�
 
 ### 机器学习即代码，就这里，趁现在！
 
-大家似乎都同意这句话。我们的 [Github](https://github.com/huggingface) 有超过 52000 颗星。Hugging Face 首次出现在 Kaggle 调查中时，其使用率就已超过 10%。
+大家似乎都同意这句话。我们的 [Github](https://github.com/huggingface) 有超过 52000 颗星。在 Hugging Face 首次出现在 Kaggle 调查报告中时，其使用率就已超过 10%。
 
 <kbd>
   <img src="assets/31_age_of_ml_as_code/07_kaggle.png">
 </kbd>
 
-**谢谢你们**。是的，我们才刚刚开始。
+**谢谢你们**，我们才刚刚开始！
 
 ---
 
