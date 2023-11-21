@@ -1,5 +1,5 @@
 ---
-title: "使用隐一致性 LoRA 4 步完成 SDXL 推理"
+title: "使用 LCM LoRA 4 步完成 SDXL 推理"
 thumbnail: /blog/assets/lcm_sdxl/lcm_thumbnail.png
 authors:
 - user: pcuenq
@@ -16,9 +16,9 @@ translators:
 - user: MatrixYao
 ---
 
-# 使用隐一致性 LoRA 4 步完成 SDXL 推理
+# 使用 LCM LoRA 4 步完成 SDXL 推理
 
-[隐一致性模型（Latent Consistency Model，LCM）](https://huggingface.co/papers/2310.04378) 通过将原始模型蒸馏为另一个需要更少步数（4 到 8 步，而不是原来的 25 到 50 步）的版本以减少用 Stable Diffusion（或 SDXL）生成图像所需的步数。蒸馏是一种训练过程，其主要思想是尝试用一个新模型来复制源模型的输出。蒸馏后的模型要么尺寸更小（如 [DistilBERT](https://huggingface.co/docs/transformers/model_doc/distilbert) 或最近发布的 [Distil-Whisper](https://github.com/huggingface/distil-whisper)），要么需要运行的步数更少（本文即是这种情况）。一般来讲，蒸馏是一个漫长且成本高昂的过程，需要大量数据、耐心以及一些 GPU。
+[LCM 模型（Latent Consistency Model，LCM）](https://huggingface.co/papers/2310.04378) 通过将原始模型蒸馏为另一个需要更少步数（4 到 8 步，而不是原来的 25 到 50 步）的版本以减少用 Stable Diffusion（或 SDXL）生成图像所需的步数。蒸馏是一种训练过程，其主要思想是尝试用一个新模型来复制源模型的输出。蒸馏后的模型要么尺寸更小（如 [DistilBERT](https://huggingface.co/docs/transformers/model_doc/distilbert) 或最近发布的 [Distil-Whisper](https://github.com/huggingface/distil-whisper)），要么需要运行的步数更少（本文即是这种情况）。一般来讲，蒸馏是一个漫长且成本高昂的过程，需要大量数据、耐心以及一些 GPU。
 
 但，以上所述皆为过往，今天我们翻新篇了！
 
@@ -26,26 +26,28 @@ translators:
 
 ## 目录
 
-- [方法概述](#方法概述)
-- [快有啥用？](#快有啥用)
-- [快速推理 SDXL LCM LoRA 模型](#快速推理-sdxl-lcm-lora-模型)
-  - [生成质量](#生成质量)
-  - [引导比例及反向提示](#引导比例及反向提示)
-  - [与标准 SDXL 模型的生成质量对比](#与标准-sdxl-模型的生成质量对比)
-  - [其他模型的 LCM LoRA](#其他模型的-lcm-lora)
-  - [Diffusers 全集成](#diffusers-全集成)
-- [测试基准](#测试基准)
-- [已公开发布的 LCM LoRA 及 LCM 模型](#已公开发布的-lcm-lora-及-lcm-模型)
-- [加分项：将 LCM LoRA 与常规 SDXL LoRA 结合起来](#加分项将-lcm-lora-与常规-sdxl-lora-结合起来)
-- [如何训练 LCM 模型及 LCM LoRA](#如何训练-lcm-模型及-lcm-lora)
-- [资源](#资源)
-- [致谢](#致谢)
+- [使用 LCM LoRA 4 步完成 SDXL 推理](#使用-lcm-lora-4-步完成-sdxl-推理)
+  - [目录](#目录)
+  - [方法概述](#方法概述)
+  - [快有啥用？](#快有啥用)
+  - [快速推理 SDXL LCM LoRA 模型](#快速推理-sdxl-lcm-lora-模型)
+    - [生成质量](#生成质量)
+    - [引导比例及反向提示](#引导比例及反向提示)
+    - [与标准 SDXL 模型的生成质量对比](#与标准-sdxl-模型的生成质量对比)
+    - [其他模型的 LCM LoRA](#其他模型的-lcm-lora)
+    - [Diffusers 全集成](#diffusers-全集成)
+  - [测试基准](#测试基准)
+  - [已公开发布的 LCM LoRA 及 LCM 模型](#已公开发布的-lcm-lora-及-lcm-模型)
+  - [加分项：将 LCM LoRA 与常规 SDXL LoRA 结合起来](#加分项将-lcm-lora-与常规-sdxl-lora-结合起来)
+  - [如何训练 LCM 模型及 LCM LoRA](#如何训练-lcm-模型及-lcm-lora)
+  - [资源](#资源)
+  - [致谢](#致谢)
 
 ## 方法概述
 
 到底用了啥技巧？
 
-在使用原始隐一致性蒸馏时，每个模型都需要单独蒸馏。而 LCM LoRA 的核心思想是只对少量适配器（[即 LoRA 层](https://huggingface.co/docs/peft/conceptual_guides/lora)）进行训练，而不用对完整模型进行训练。推理时，可将生成的 LoRA 用于同一模型的任何微调版本，而无需对每个版本都进行蒸馏。如果你已经迫不及待地想试试这种方法的实际效果了，可以直接跳到[下一节](#fast-inference-with-sdxl-lcm-loras)试一下推理代码。如果你想训练自己的 LoRA，流程如下：
+在使用原始 LCM 蒸馏时，每个模型都需要单独蒸馏。而 LCM LoRA 的核心思想是只对少量适配器（[即 LoRA 层](https://huggingface.co/docs/peft/conceptual_guides/lora)）进行训练，而不用对完整模型进行训练。推理时，可将生成的 LoRA 用于同一模型的任何微调版本，而无需对每个版本都进行蒸馏。如果你已经迫不及待地想试试这种方法的实际效果了，可以直接跳到[下一节](#fast-inference-with-sdxl-lcm-loras)试一下推理代码。如果你想训练自己的 LoRA，流程如下：
 
 1. 从 Hub 中选择一个教师模型。如：你可以使用 [SDXL（base）](https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0)，或其任何微调版或 dreambooth 微调版，随你喜欢。
 
@@ -95,7 +97,7 @@ images = pipe(
 
 - 使用 SDXL 1.0 base 模型去实例化一个标准的 diffusion 流水线。
 - 应用 LCM LoRA。
-- 将调度器改为 LCMScheduler，这是隐一致性模型使用的调度器。
+- 将调度器改为 LCMScheduler，这是 LCM 模型使用的调度器。
 - 结束！
 
 生成的全分辨率图像如下所示：
@@ -314,7 +316,7 @@ images
 
 ## 致谢
 
-[LCM 团队](https://latent-consistency-models.github.io) 完成了隐一致性模型的出色工作，请务必查阅他们的代码、报告和论文。该项目是 [diffusers 团队](https://github.com/huggingface/diffusers)、LCM 团队以及社区贡献者 [Daniel Gu](https://huggingface.co/dg845) 合作的结果。我们相信，这证明了开源人工智能的强大力量，它是研究人员、从业者和探客（tinkerer）们探索新想法和协作的基石。我们还要感谢 [`@madebyollin`](https://huggingface.co/madebyollin) 对社区的持续贡献，其中包括我们在训练脚本中使用的 `float16` 自编码器。
+[LCM 团队](https://latent-consistency-models.github.io) 完成了 LCM 模型的出色工作，请务必查阅他们的代码、报告和论文。该项目是 [diffusers 团队](https://github.com/huggingface/diffusers)、LCM 团队以及社区贡献者 [Daniel Gu](https://huggingface.co/dg845) 合作的结果。我们相信，这证明了开源人工智能的强大力量，它是研究人员、从业者和探客（tinkerer）们探索新想法和协作的基石。我们还要感谢 [`@madebyollin`](https://huggingface.co/madebyollin) 对社区的持续贡献，其中包括我们在训练脚本中使用的 `float16` 自编码器。
 
 > 英文原文: <url> https://huggingface.co/blog/lcm_lora </url>
 > 原文作者：Pedro Cuenca，Suraj Patil，Simian Luo，Daniel Gu，Yiqin Tan，Sayak Paul，Apolinário
