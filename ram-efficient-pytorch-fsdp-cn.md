@@ -12,8 +12,6 @@ translators:
 
 # 使用 PyTorch FSDP 微调 Llama 2 70B
 
-https://github.com/huggingface/blog/issues/1649
-
 ## 引言
 
 通过本文，读者将了解如何使用 PyTorch FSDP 及相关最佳实践微调 Llama 2 70B。在此过程中，我们主要使用 Hugging Face Transformers、Accelerate 和 TRL 库。我们还将展示如何在 SLURM 中使用 Accelerate。
@@ -181,13 +179,7 @@ accelerate launch \
     --use_flash_attn True
 ```
 
-整个微调过程需要约 13.5 小时，下图给出了训练损失曲线。我们计算一下该模型的训练算力利用率（Model Flops Utilization，MFU）。
-
-1. 一张 A100 GPU 每秒执行约 3.12e14 FLOPS（计算精度为 bfloat16）
-2. 总训练词元数 = 序列长度 \* batch size \* 训练步数 = (2048 \* 16 \* 500) = 16,384,000 = 1.64e7
-3. 训练所需的近似计算量 = 6 \* P (参数量) \* D (词元数) = 6 \* 7e10 \* 1.64e7 = 6.89e18 FLOPS
-4. 每秒训练 FLOPS = 近似计算量 / 训练时间 = 6.89e18 / (13.5 \* 3600) = 6.89e18 / 4.86e4 = 每秒 1.42e14 FLOPS
-5. MFU = 每秒训练 FLOPS / A100 峰值性能 = 1.42e14 / 3.12e14 = 0.4551 = **峰值性能的 45.51%**
+整个微调过程需要约 13.5 小时，下图给出了训练损失曲线。
 
 ![训练损失曲线](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/blog/160_ram_efficient_fsdp/train_loss.png)
 
@@ -237,3 +229,5 @@ question, please don’t share false information.
 > 英文原文: <url> https://huggingface.co/blog/ram-efficient-pytorch-fsdp </url>
 > 原文作者：Sourab Mangrulkar，Sylvain Gugger，Lewis Tunstall，Philipp Schmid
 > 译者: Matrix Yao (姚伟峰)，英特尔深度学习工程师，工作方向为 transformer-family 模型在各模态数据上的应用及大规模模型的训练推理。
+>
+> FSDP MFU（Model FLOPS Utilization）相关讨论：https://github.com/huggingface/blog/issues/1649

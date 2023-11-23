@@ -30,13 +30,13 @@ translators:
 
 4. 3D并行 [3]：采用 `ZeRO 数据并行 + 张量并行 + 流水线并行`的方式来训练数百亿参数的大模型。例如，BigScience 176B 语言模型就采用了该并行方式 [6]。
 
-本文我们主要关注 ZeRO 数据并行，更具体地讲是 PyTorch 最新的**[完全分片数据并行（Fully Sharded Data Parallel，FSDP）](https://pytorch.org/blog/introducing-pytorch-complete-sharded-data-parallel-api/)** 功能。**[DeepSpeed](https://github.com/microsoft/deepspeed)** 和 **[FairScale](https://github.com/facebookresearch/fairscale/)** 实现了 ZeRO 论文的核心思想。我们已经将其集成到了 `transformers` 的 `Trainer` 中，详见博文[通过 DeepSpeed 和 FairScale 使用 ZeRO 进行更大更快的训练](https://huggingface.co/blog/zero-deepspeed-fairscale)[10]。最近，PyTorch 已正式将 Fairscale FSDP 整合进其 Distributed 模块中，并增加了更多的优化。
+本文我们主要关注 ZeRO 数据并行，更具体地讲是 PyTorch 最新的 **[完全分片数据并行（Fully Sharded Data Parallel，FSDP）](https://pytorch.org/blog/introducing-pytorch-complete-sharded-data-parallel-api/)** 功能。**[DeepSpeed](https://github.com/microsoft/deepspeed)** 和 **[FairScale](https://github.com/facebookresearch/fairscale/)** 实现了 ZeRO 论文的核心思想。我们已经将其集成到了 `transformers` 的 `Trainer` 中，详见博文[通过 DeepSpeed 和 FairScale 使用 ZeRO 进行更大更快的训练](https://huggingface.co/blog/zero-deepspeed-fairscale)[10]。最近，PyTorch 已正式将 Fairscale FSDP 整合进其 Distributed 模块中，并增加了更多的优化。
 
 # Accelerate 🚀:  无需更改任何代码即可使用 PyTorch FSDP
 
 我们以基于 GPT-2 的 Large (762M) 和 XL (1.5B) 模型的因果语言建模任务为例。
 
-以下是预训练 GPT-2 模型的代码。其与[此处](https://github.com/huggingface/transformers/blob/main/examples/pytorch/language-modeling/run_clm_no_trainer.py) 的官方因果语言建模示例相似，仅增加了 2 个参数 `n_train` (2000) 和 `n_val` (500) 以防止对整个数据集进行预处理/训练，从而支持更快地进行概念验证。
+以下是预训练 GPT-2 模型的代码。其与[此处](https://github.com/huggingface/transformers/blob/main/examples/pytorch/language-modeling/run_clm_no_trainer.py)的官方因果语言建模示例相似，仅增加了 2 个参数 `n_train` (2000) 和 `n_val` (500) 以防止对整个数据集进行预处理/训练，从而支持更快地进行概念验证。
 
 <a href="./assets/62_pytorch_fsdp/run_clm_no_trainer.py" target="_parent">run_clm_no_trainer.py</a>
 
@@ -62,7 +62,7 @@ use_cpu: false
 
 ## 多 GPU FSDP
 
-本文我们使用单节点多 GPU 上作为实验平台。我们比较了分布式数据并行 (DDP) 和 FSDP 在各种不同配置下的性能。我们可以看到，对 GPT-2 Large(762M) 模型而言，DDP 尚能够支持其中某些 batch size 而不会引起内存不足 (OOM) 错误。但当使用 GPT-2 XL (1.5B) 时，即使 batch size 为 1，DDP 也会失败并出现 OOM 错误。同时，我们看到，FSDP 可以支持以更大的 batch size 训练 GPT-2 Large 模型，同时它还可以使用较大的 batch size 训练 DDP 训练不了的 GPT-2 XL 模型。
+本文我们使用单节点多 GPU 上作为实验平台。我们比较了分布式数据并行 (DDP) 和 FSDP 在各种不同配置下的性能。我们可以看到，对 GPT-2 Large(762M) 模型而言，DDP 尚能够支持其中某些 batch size 而不会引起内存不足（OOM）错误。但当使用 GPT-2 XL（1.5B）时，即使 batch size 为 1，DDP 也会失败并出现 OOM 错误。同时，我们看到，FSDP 可以支持以更大的 batch size 训练 GPT-2 Large 模型，同时它还可以使用较大的 batch size 训练 DDP 训练不了的 GPT-2 XL 模型。
 
 **硬件配置**：2 张 24GB 英伟达 Titan RTX GPU。
 
@@ -99,7 +99,7 @@ FSDP 运行截屏：
 
 表 1：GPT-2 Large (762M) 模型 FSDP 训练性能基准测试
 
-从表 1 中我们可以看到，相对于 DDP 而言，FSDP **支持更大的 batch size**，在不使用和使用 CPU 卸载设置的情况下 FSDP 支持的最大 batch size 分别可达 DDP 的 **2 倍及 3 倍**。从训练时间来看，混合精度的 DDP 最快，其后是分别使用 ZeRO 阶段 2 和阶段 3 的 FSDP。由于因果语言建模的任务的上下文序列长度（--block_size）是固定的，因此 FSDP 在训练时间上加速还不是太高。对于动态 batch size 的应用而言，支持更大 batch size 的 FSDP 可能会在训练时间方面有更大的加速。目前，FSDP 的混合精度支持在 `transformers` 上还存在一些[问题](https://github.com/pytorch/pytorch/issues/75676)。一旦问题解决，训练时间将会进一步显著缩短。
+从表 1 中我们可以看到，相对于 DDP 而言，FSDP **支持更大的 batch size**，在不使用和使用 CPU 卸载设置的情况下 FSDP 支持的最大 batch size 分别可达 DDP 的 **2 倍及 3 倍**。从训练时间来看，混合精度的 DDP 最快，其后是分别使用 ZeRO 阶段 2 和阶段 3 的 FSDP。由于因果语言建模的任务的上下文序列长度（`--block_size`）是固定的，因此 FSDP 在训练时间上加速还不是太高。对于动态 batch size 的应用而言，支持更大 batch size 的 FSDP 可能会在训练时间方面有更大的加速。目前，FSDP 的混合精度支持在 `transformers` 上还存在一些[问题](https://github.com/pytorch/pytorch/issues/75676)。一旦问题解决，训练时间将会进一步显著缩短。
 
 ### 使用 CPU 卸载来支持放不进 GPU 显存的大模型训练
 
@@ -130,7 +130,7 @@ time accelerate launch run_clm_no_trainer.py \
 
 表 2：GPT-2 XL（1.5B）模型上的 FSDP 基准测试
 
-从表 2 中，我们可以观察到 DDP（带和不带 fp16）甚至在 batch size 为 1 的情况下就会出现 CUDA OOM 错误，从而无法运行。而开启了 ZeRO-阶段 3 的 FSDP 能够以 batch size 为 5（总 batch size = 10 (5 $\times$ 2)）在 2 个 GPU 上运行。当使用 2 个 GPU 时，开启了 CPU 卸载的 FSDP 还能将最大 batch size 进一步增加到每 GPU 14。 **开启了 CPU 卸载的 FSDP 可以在单个 GPU 上训练 GPT-2 1.5B 模型，batch size 为 10**。这使得机器学习从业者能够用最少的计算资源来训练大模型，从而助力大模型训练民主化。
+从表 2 中，我们可以观察到 DDP（带和不带 fp16）甚至在 batch size 为 1 的情况下就会出现 CUDA OOM 错误，从而无法运行。而开启了 ZeRO-阶段 3 的 FSDP 能够以 batch size 为 5（总 batch size = 10（5 $\times$ 2））在 2 个 GPU 上运行。当使用 2 个 GPU 时，开启了 CPU 卸载的 FSDP 还能将最大 batch size 进一步增加到每 GPU 14。 **开启了 CPU 卸载的 FSDP 可以在单个 GPU 上训练 GPT-2 1.5B 模型，batch size 为 10**。这使得机器学习从业者能够用最少的计算资源来训练大模型，从而助力大模型训练民主化。
 
 ## Accelerate 的 FSDP 集成的功能和限制
 
@@ -156,11 +156,11 @@ time accelerate launch run_clm_no_trainer.py \
 
 (图源：[链接](https://pytorch.org/tutorials/intermediate/FSDP_tutorial.html))
 
-当使用 `default_auto_wrap_policy` 时，如果该层的参数量超过 `min_num_params`，则该层将被包装在一个 FSDP 模块中。官方有一个在 GLUE MRPC 任务上微调 BERT-Large (330M) 模型的示例代码，其完整地展示了如何正确使用 FSDP 功能，其中还包含了用于跟踪峰值内存使用情况的代码。
+当使用 `default_auto_wrap_policy` 时，如果该层的参数量超过 `min_num_params`，则该层将被包装在一个 FSDP 模块中。官方有一个在 GLUE MRPC 任务上微调 BERT-Large（330M）模型的示例代码，其完整地展示了如何正确使用 FSDP 功能，其中还包含了用于跟踪峰值内存使用情况的代码。
 
 [fsdp_with_peak_mem_tracking.py](https://github.com/huggingface/accelerate/tree/main/examples/by_feature/fsdp_with_peak_mem_tracking.py)
 
-我们利用 Accelerate 的跟踪功能来记录训练和评估期间的峰值内存使用情况以及模型准确率指标。下图展示了 wandb [实验台](https://wandb.ai/smangrul/FSDP-Test?workspace=user-smangrul) 页面的截图。
+我们利用 Accelerate 的跟踪功能来记录训练和评估期间的峰值内存使用情况以及模型准确率指标。下图展示了 wandb [实验台](https://wandb.ai/smangrul/FSDP-Test?workspace=user-smangrul)页面的截图。
 
 ![wandb 实验台](./assets/62_pytorch_fsdp/wandb_run.png)
 
