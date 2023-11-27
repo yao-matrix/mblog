@@ -24,7 +24,7 @@ translators:
 
 特别地，大家的工作一直围绕一个核心问题：transformer 模型的内存和时间复杂度与序列长度呈二次方关系。为了高效地训练大模型，2020 年发表了大量论文来解决这一瓶颈，这些论文成果斐然，年初我们训练 transformer 模型的默认训练序列长度还是 512 或 1024，一年之内的现在，我们已经突破这个值了。
 
-长程注意力从一开始就是我们研究和讨论的关键话题之一，我们 Hugging Face 的 Patrick Von Platen 同学甚至还专门为 Reformer 撰写了一篇[由 4 部分组成的博文](https://huggingface.co/blog/reformer)。本文，我们不会试图涵盖每种方法（太多了，根本搞不完！），而是重点关注四个主要思想：
+长程注意力从一开始就是我们研究和讨论的关键话题之一，我们 Hugging Face 的 Patrick Von Platen 同学甚至还专门为 Reformer 撰写了一篇[由 4 部分组成的博文](https://huggingface.co/blog/zh/reformer)。本文，我们不会试图涵盖每种方法（太多了，根本搞不完！），而是重点关注四个主要思想：
 
 * 自定义注意力模式（使用 [Longformer](https://arxiv.org/abs/2004.05150)）
 * 循环（使用 [Compressive Transformer](https://arxiv.org/abs/1911.05507)）
@@ -99,7 +99,7 @@ Longformer 使用不同的注意力模式执行自回归语言建模、编码器
 
 * 与 BERT 或 GPT2 等简单模型相比，Compressive Transformer 具有更多的超参数：压缩率、压缩函数及损失、常规和压缩记忆大小等。目前尚不清楚这些参数是否可以很好地泛化到除语言建模之外的不同任务中。还是说我们会重演学习率的故事，参数的选择会使得训练非常脆弱。
 
-* 探测常规记忆和压缩记忆来分析在长序列中我们到底记忆了什么样的信息，这是个有意思地课题。揭示最显著的信息可以为诸如[Funnel Transformer](https://arxiv.org/abs/2006.03236)之类的方法提供信息，这些方法减少了维护全长词元序列所带来的冗余。
+* 探测常规记忆和压缩记忆来分析在长序列中我们到底记忆了什么样的信息，这是个有意思地课题。揭示最显著的信息可以为诸如 [Funnel Transformer](https://arxiv.org/abs/2006.03236) 之类的方法提供信息，这些方法减少了维护全长词元序列所带来的冗余。
 
 ### [Linformer: Self-Attention with Linear Complexity](https://arxiv.org/abs/2006.04768)
 
