@@ -1,5 +1,5 @@
 ---
-title: "研究比较 Roberta、Llama 2 及 Mistral 的 LoRA 微调在灾难推文分析场景上的表现" 
+title: "在灾难推文分析场景上比较用 LoRA 微调 Roberta、Llama 2 和 Mistral 的过程及表现"
 thumbnail: /blog/assets/Lora-for-sequence-classification-with-Roberta-Llama-Mistral/Thumbnail.png
 authors:
 - user: mehdiiraqui 
@@ -8,11 +8,10 @@ translators:
 - user: MatrixYao
 ---
 
-# 研究比较 Roberta、Llama 2 及 Mistral 的 LoRA 微调在灾难推文分析场景上的表现
+# 在灾难推文分析场景上比较用 LoRA 微调 Roberta、Llama 2 和 Mistral 的过程及表现
 
 <!-- TOC -->
-
-- [研究比较 Roberta、Llama 2 及 Mistral 的 LoRA 微调在灾难推文分析场景上的表现](#研究比较-robertallama-2-及-mistral-的-lora-微调在灾难推文分析场景上的表现)
+- [在灾难推文分析场景上比较用 LoRA 微调 Roberta、Llama 2 和 Mistral 的过程及表现](#在灾难推文分析场景上比较用-lora-微调-robertallama-2-和-mistral-的过程及表现)
   - [引言](#引言)
   - [使用的硬件](#使用的硬件)
   - [目标](#目标)
@@ -52,7 +51,7 @@ translators:
 
 ## 引言 
 
-自然语言处理 (NLP) 领域进展日新月异，你方唱罢我登场。因此，在实际场景中，针对特定的任务，我们经常需要对不同的语言模型进行比较，以寻找最适合的模型。本文主要比较 3 个模型：RoBERTa、Mistral-7B 及 Llama-2-7B。我们用它们来解决一个常见问题 —— 对灾难相关的推文进行分类。值得注意的是，Mistral 和 Llama 2 是 70 亿参数的大模型。相比之下，RoBERTa-large（355M 参数）是一个相对较小的模型，我们用它作为比较的基线。
+自然语言处理（NLP）领域的进展日新月异，你方唱罢我登场。因此，在实际场景中，针对特定的任务，我们经常需要对不同的语言模型进行比较，以寻找最适合的模型。本文主要比较 3 个模型：RoBERTa、Mistral-7B 及 Llama-2-7B。我们用它们来解决一个常见问题 —— 对灾难相关的推文进行分类。值得注意的是，Mistral 和 Llama 2 是 70 亿参数的大模型。相形之下，RoBERTa-large（355M 参数）只是一个小模型，我们用它作为比较的基线。
 
 本文，我们使用 PEFT（Parameter-Efficient Fine-Tuning，参数高效微调）技术：LoRA（Low-Rank Adaptation，低秩适配）来微调带序列分类任务头的预训练模型。LoRA 旨在显著减少可训参数量，同时保持强大的下游任务性能。
 
@@ -68,7 +67,7 @@ translators:
 ## 目标
 
 - 使用 LoRA PEFT 方法对预训练 LLM 进行微调。
-- 了解如何使用 Hugging Face API（[transformers](https://huggingface.co/docs/transformers/index)、[peft](https://huggingface.co/docs/peft/index) 以及 [datasets](https://huggingface.co/docs/datasets/index)）。
+- 了解如何使用 Hugging Face 的各种 API（[transformers](https://huggingface.co/docs/transformers/index)、[peft](https://huggingface.co/docs/peft/index) 以及 [datasets](https://huggingface.co/docs/datasets/index)）。
 - 使用 [Weights & Biases](https://wandb.ai) 进行超参调优以及实验日志记录。
 
 ## 软件依赖
@@ -83,23 +82,23 @@ transformers
 wandb 
 ```
 
-注意：要准确重现本文结果，请注意核对 [wandb 报告](#资源)使用的软件版本。
+注意：要准确重现本文结果，请注意确保软件版本与 [wandb 报告](#资源)的一致。
 
 ## 预训练模型
 
 ### [RoBERTa](https://arxiv.org/abs/1907.11692)
 
-RoBERTa（Robustly Optimized BERT Approach）是 Meta AI 研究团队提出的 BERT 模型的改进版。BERT 是一种基于 transformer 的语言模型，其使用自注意力机制对单词进行上下文感知的表征，并基于掩码语言模型目标进行训练。请注意，BERT 作为编码器模型，仅可用于自然语言理解任务（例如序列分类和词元分类）。
+RoBERTa（Robustly Optimized BERT Approach）是 Meta AI 研究团队提出的改进版 BERT 模型。BERT 是一种基于 transformer 的语言模型，其基于自注意力机制对单词进行上下文感知的表征，并基于掩码语言模型目标进行训练。请注意，BERT 作为编码器模型，仅可用于自然语言理解任务（例如序列分类和词元分类）。
 
-RoBERTa 是一种流行的可微调模型，它适合作为我们实验的基线。欲了解更多信息，你可以查阅其 Hugging Face [模型卡](https://huggingface.co/docs/transformers/model_doc/roberta)。
+RoBERTa 是一种流行的可微调模型，很适合作为我们实验的基线。欲了解更多信息，你可以查阅其 Hugging Face [模型卡](https://huggingface.co/docs/transformers/model_doc/roberta)。
 
 ### [Llama 2](https://arxiv.org/abs/2307.09288)
 
-Llama 2（Large Language Model Meta AI）是 Meta AI 推出的一系列大语言模型 （LLM），其模型大小各异，参数量从 70 亿到 650 亿不等。
+Llama 2（Large Language Model Meta AI）是 Meta AI 推出的一系列大语言模型（LLM），其模型大小各异，参数量从 70 亿到 650 亿不等。
 
 Llama 2 是一种基于 transformer 解码器架构的自回归语言模型。Llama 2 接受单词序列作为输入，并基于滑动窗口迭代预测下一个词元，从而实现文本生成的功能。
 
-Llama 2 的架构与 GPT-3 等模型略有不同。举几个例子，Llama 2 采用 SwiGLU 激活函数而不是 ReLU，其位置嵌入也使用的是旋转位置嵌入而不是可训绝对位置嵌入。
+Llama 2 的架构与 GPT-3 等模型略有不同。举几个例子，Llama 2 采用 SwiGLU 激活函数而不是 ReLU，另外其位置嵌入使用的是旋转位置嵌入而不是可训绝对位置嵌入。
 
 最近发布的 Llama 2 还对架构进行了改进，其将支持的最大上下文长度扩展到 4096 个词元，并使用分组查询注意（grouped-query attention，GQA）解码机制来更好地利用长序列。
 
@@ -109,21 +108,21 @@ Mistral 7B v0.1 有 73 亿个参数，是 Mistral AI 推出的第一个 LLM。
 
 Mistral 7B 架构使用的新技术主要有：
 
-- 滑窗注意力：用基于滑动窗口的注意力替换完整注意力（平方级计算成本），其中每个词元最多可以关注上一层的 4096 个词元（线性计算成本）。这样，多层以后，Mistral 7B 的实际关注词元会叠加，因此更高层的注意力实际关注的历史总词元数会超过 4096。
+- 滑窗注意力：用基于滑动窗口的注意力替换完整注意力（平方级计算成本），其中每个词元最多可以关注上一层的 4096 个词元（线性计算成本）。这样，多层以后，Mistral 7B 的实际关注词元数会叠加，因此更高层的注意力实际关注的总历史词元数会超过 4096。
 
 - 分组查询注意力：Llama 2 也使用了该技术，其通过缓存先前解码的词元的键向量和值向量来优化推理过程（减少处理时间）。
 
 ## [LoRA](https://arxiv.org/abs/2106.09685) 
 
-PEFT（Parameter Efficient Fine-Tuning，参数高效微调）包含 p-tuning、前缀微调（prefix-tuning）、IA3、适配器微调以及 LoRA 等一系列技术，其旨在仅微调大模型的一个小参数集，就能达到全模型微调的性能水平。
+PEFT（Parameter Efficient Fine-Tuning，参数高效微调）包含 p-tuning、前缀微调（prefix-tuning）、IA3、适配器微调以及 LoRA 等一系列技术，其旨在通过仅微调大模型的一个小参数集，就能达到全模型微调的性能水平。
 
-LoRA（Low-Rank Adaptation，低阶适配）的方法与添加适配层类似。其主要目标是减少模型的可训参数量。LoRA 的主要做法是在冻结预训练权重的条件下，更新低秩矩阵。
+LoRA（Low-Rank Adaptation，低阶适配）的方法与添加适配层类似。其主要目标是减少模型的可训参数量。LoRA 的主要做法是冻结预训练权重，仅更新一个新增的低秩矩阵。
 
 ![示意图](https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/blog/Lora-for-sequence-classification-with-Roberta-Llama-Mistral/lora.png)
 
 ## 环境设置
 
-RoBERTa 的最大序列长度为 512，为公平起见，对所有模型我们统一设定 `MAX_LEN=512`。
+RoBERTa 支持的最大序列长度为 512，为公平起见，对所有模型，我们统一设定 `MAX_LEN=512`。
 
 ```python
 MAX_LEN = 512 
@@ -216,7 +215,7 @@ dtypes: int64(2), object(3)
 memory usage: 127.6+ KB
 ```
 
-**训练集的标签分布情况：**
+**训练集中标签分布情况：**
 
 ```
 target
@@ -238,7 +237,7 @@ neg_weights = len(data['train'].to_pandas()) / (2 * data['train'].to_pandas().ta
 POS_WEIGHT, NEG_WEIGHT = (1.1637114032405993, 0.8766697374481806)
 ```
 
-然后，我们计算文本序列的最大长度：
+接着，我们计算文本序列的最大长度：
 
 ```python
 # 字符数
@@ -290,7 +289,7 @@ def roberta_preprocessing_function(examples):
     return roberta_tokenizer(examples['text'], truncation=True, max_length=MAX_LEN)
 ```
 
-我们将预处理函数应用于训练数据集的第一条数据，我们得到了分词后的输入（`input_ids`）及其注意力掩码：
+将预处理函数应用于训练数据集的第一条数据，我们得到了分词后的输入（`input_ids`）及其注意力掩码：
 
 ```python
 roberta_preprocessing_function(data['train'][0])
@@ -305,7 +304,7 @@ roberta_preprocessing_function(data['train'][0])
 col_to_delete = ['id', 'keyword','location', 'text']
 # 删除不需要的列，并应用预处理函数
 roberta_tokenized_datasets = data.map(roberta_preprocessing_function, batched=True, remove_columns=col_to_delete)
-# 按照 HuggingFace 的要求，将 "target" 列 重命名为 "label" 列
+# 按照 HuggingFace 的要求，将 `target` 列 重命名为 `label` 列
 roberta_tokenized_datasets = roberta_tokenized_datasets.rename_column("target", "label")
 # 数据集格式设为 "torch"
 roberta_tokenized_datasets.set_format("torch")
@@ -327,7 +326,7 @@ roberta_tokenized_datasets['train'][0]
  'attention_mask': tensor([1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1])}
 ```
 
-- 为了生成训练 batch 数据，我们还需要对给定 batch 中的序列进行填充，使 batch 中所有序列的长度都等于本 batch 最长序列的长度。为此，我们使用了 `DataCollat​​orWithPadding` 类：
+- 为了生成训练 batch 数据，我们还需要对给定 batch 中的序列进行填充，以使 batch 中所有序列的长度都等于本 batch 最长序列的长度。为此，我们使用了 `DataCollat​​orWithPadding` 类：
 
 ```python
 # 数据整理器将所有数据统一填充至 batch 内最长序列的长度
@@ -337,7 +336,7 @@ roberta_data_collator = DataCollatorWithPadding(tokenizer=roberta_tokenizer)
 
 用相同的流程为 Mistral 7B 和 Llama 2 模型准备数据：
 
-**注意** Llama 2 和 Mistral 7B 没有默认的 `pad_token_id`，因此我们将其设为 `eos_token_id`。
+**注意** Llama 2 和 Mistral 7B 没有默认的 `pad_token_id`，我们将其设为 `eos_token_id`。
 
 - Mistral 7B：
 
@@ -402,7 +401,7 @@ roberta_model = AutoModelForSequenceClassification.from_pretrained(roberta_check
 - lora_dropout：LoRA 层的 Dropout 概率
 - bias：是否向 LoRA 层添加偏置
 
-一下代码使用了 [LoRA 论文](https://arxiv.org/abs/2106.09685)的推荐设置。[后文](#超参调优)我们还将用 `wandb` 对这些超参进行调优。
+以下代码使用了 [LoRA 论文](https://arxiv.org/abs/2106.09685)的推荐设置。[后文](#超参调优)我们还将用 `wandb` 对这些超参进行调优。
 
 ```python
 from peft import get_peft_model, LoraConfig, TaskType
@@ -492,7 +491,7 @@ llama_model.config.pad_token_id = llama_model.config.eos_token_id
 
 #### Llama 2 分类器的 LoRA 设置
 
-我们使用与 Mistral 相同的 LoRA 参数：
+使用与 Mistral 相同的 LoRA 参数：
 
 ```python
 from peft import get_peft_model, LoraConfig, TaskType
@@ -665,7 +664,7 @@ mistral_trainer = WeightedCELossTrainer(
     compute_metrics=compute_metrics
 )
 ```
-**注意**，我们需要将 `fp16` 设为 `True` 以启用半精度训练。主要原因是 Mistral-7B 很大，如果使用 fp32 精度，其权重无法被单块 GPU 的显存所容纳（48GB）。
+**注意**，我们需要将 `fp16` 设为 `True` 以启用半精度训练。主要原因是 Mistral-7B 很大，如果使用 fp32 精度，其权重无法放进单块 GPU 的显存（48GB）中。
 
 #### Llama 2
 
@@ -709,7 +708,7 @@ llama_trainer = WeightedCELossTrainer(
 
 ## 超参调优
 
-我们用 Wandb Sweep API 通过贝叶斯搜索策略来进行超参调优（30 次运行），得到的调优超参如下：
+我们用 Wandb Sweep API 通过贝叶斯搜索策略来进行超参调优（30 次运行），待调优的超参搜索空间如下：
 
 | 方法 | 指标              | lora_alpha                                | lora_bias                 | lora_dropout            | lora_rank                                          | lr                          | max_length                |
 |--------|---------------------|-------------------------------------------|---------------------------|-------------------------|----------------------------------------------------|-----------------------------|---------------------------|
@@ -728,24 +727,22 @@ llama_trainer = WeightedCELossTrainer(
 
 ## 总结
 
-本文我们用 LoRA 对三个大语言模型 (LLM)（RoBERTa、Mistral 7B 及 Llama 2）进行微调以应用至灾难推文分类任务。从性能结果来看，RoBERTa 的性能大幅优于 Mistral 7B 和 Llama 2。这就提出了一个问题：我们是否真的需要一个大而复杂的LLM 来完成诸如短序列二分类这样的简单任务？
+本文我们用 LoRA 对三个大语言模型（LLM）（RoBERTa、Mistral 7B 及 Llama 2）针对灾难推文分类任务进行微调。从性能结果来看，RoBERTa 的性能大幅优于 Mistral 7B 和 Llama 2。这就提出了一个问题：我们是否真的需要一个大而复杂的 LLM 来完成诸如短序列二分类这样的简单任务？
 
 一个重要的启示是，在选择要使用的 LLM 模型时应该考虑具体的项目要求、可用资源和性能需求。
 
+此外，对于针对短序列的相对*简单*的预测任务，小的基础模型（例如 RoBERTa）仍然具有竞争力。
 
-此外，对于针对短序列的相对*简单*的预测任务，小型的基础模型（例如 RoBERTa）仍然具有竞争力。
-
-最后，我们还通过例子展示了 LoRA 方法的通用性，其既可应用于编码器 (RoBERTa) 模型，还可应用于解码器（Llama 2 和 Mistral 7B）模型。
+最后，我们还通过例子展示了 LoRA 方法的通用性，其既可应用于编码器 (RoBERTa) 模型，还可应用于解码器（Llama 2 及 Mistral 7B）模型。
 
 ## 资源
 
-1. 本文代码均已放至该 [Github 项目](https://github.com/mehdiir/Roberta-Llama-Mistral/)。
+1. 本文代码均已在该 [Github 项目](https://github.com/mehdiir/Roberta-Llama-Mistral/)。
 
-2. 下面是各自模型的 Wandb 超参调优实验报告：
+2. 下面是各模型的 Wandb 超参调优实验报告：
     - [RoBERTa](https://api.wandb.ai/links/mehdi-iraqui/505c22j1)
     - [Mistral 7B](https://api.wandb.ai/links/mehdi-iraqui/24vveyxp)
     - [Llama 2](https://api.wandb.ai/links/mehdi-iraqui/qq8beod0)
-
 
 > 英文原文: <url> https://huggingface.co/blog/Lora-for-sequence-classification-with-Roberta-Llama-Mistral </url>
 > 原文作者：Mehdi Iraqi
