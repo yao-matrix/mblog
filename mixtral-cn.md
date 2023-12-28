@@ -1,5 +1,5 @@
 ---
-title: "欢迎 Mixtral - Hugging Face 当前最先进的 MoE 模型"
+title: "欢迎 Mixtral - 当前 Hugging Face 上最先进的 MoE 模型"
 thumbnail: /blog/assets/mixtral/thumbnail.jpg
 authors:
 - user: lewtun
@@ -13,7 +13,7 @@ translators:
 - user: MatrixYao
 ---
 
-# 欢迎 Mixtral - Hugging Face 当前最先进的 MoE 模型
+# 欢迎 Mixtral - 当前 Hugging Face 上最先进的 MoE 模型
 
 最近，Mistral 发布了一个激动人心的大语言模型：Mixtral 8x7b，该模型把开放模型的性能带到了一个新高度，并在许多基准测试上表现优于 GPT-3.5。我们很高兴能够在 Hugging Face 生态系统中全面集成 Mixtral 以对其提供全方位的支持 🔥！
 
@@ -27,7 +27,7 @@ Hugging Face 对 Mixtral 的全方位支持包括：
 
 ## 目录
 
-- [欢迎 Mixtral - Hugging Face 当前最先进的 MoE 模型](#欢迎-mixtral---hugging-face-当前最先进的-moe-模型)
+- [欢迎 Mixtral - 当前 Hugging Face 上最先进的 MoE 模型](#欢迎-mixtral---当前-hugging-face-上最先进的-moe-模型)
 	- [目录](#目录)
 	- [Mixtral 8x7b 是什么？](#mixtral-8x7b-是什么)
 		- [关于命名](#关于命名)
