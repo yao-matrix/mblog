@@ -307,7 +307,7 @@ print(tokenizer.decode(output[0], skip_special_tokens=True))
 
 ## 总结
 
-我们对 Mixtral 的发布感到欢欣鼓舞！我们正围绕 Mixtral 准备更多关于微调和部署文章，尽请期待。
+我们对 Mixtral 的发布感到欢欣鼓舞！我们正围绕 Mixtral 准备更多关于微调和部署文章，敬请期待。
 
 > 英文原文: <url> https://huggingface.co/blog/mixtral </url>
 > 原文作者：Lewis Tunstall，Philipp Schmid，Omar Sanseviero，Pedro Cuenca，Olivier Dehaene，Leandro von Werra，Younes Belkada
