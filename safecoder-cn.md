@@ -84,7 +84,7 @@ SafeCoder 推理支持各种硬件，为客户提供广泛的选择：英伟达 
 
 ### 使用 SafeCoder
 
-一旦部署了 SafeCoder 并在客户 VPC 中上线了其推理端点，开发人员就可以安装兼容的 SafeCoder IDE 插件，以便在工作时获取代码建议。当前，SafeCoder 支持流行的 IDE，包括 [VSCode](https://marketplace.visualstudio.com/items?itemName=HuggingFace.huggingface-vscode)、IntelliJ，同时我们的合作伙伴还在开发更多插件，尽请期待。
+一旦部署了 SafeCoder 并在客户 VPC 中上线了其推理端点，开发人员就可以安装兼容的 SafeCoder IDE 插件，以便在工作时获取代码建议。当前，SafeCoder 支持流行的 IDE，包括 [VSCode](https://marketplace.visualstudio.com/items?itemName=HuggingFace.huggingface-vscode)、IntelliJ，同时我们的合作伙伴还在开发更多插件，敬请期待。
 
 ## 如何获取 SafeCoder？
 
