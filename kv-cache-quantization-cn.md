@@ -149,4 +149,3 @@ I like rock music because it's loud and energetic. I like to listen to it when I
 > 英文原文: <url> https://huggingface.co/blog/kv-cache-quantization </url>
 > 原文作者：Raushan Turganbay
 > 译者: Matrix Yao (姚伟峰)，英特尔深度学习工程师，工作方向为 transformer-family 模型在各模态数据上的应用及大规模模型的训练推理。
-
