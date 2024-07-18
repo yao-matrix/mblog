@@ -49,7 +49,7 @@ authors:
 
 如你想参与攻略相关的工作，你可以按照你感兴趣的项目的 README 文件中的说明进行操作，与社区共享你的数据集和结果，或者为大家提供新的指南和工具。你的宝贵贡献将有助于我们为所有人建立强大而全面的资源。
 
-如果你想参与其中，请加入我们的 [**Hugging Face Discord**](http://hf.co/join/discord) 中的`#data-is-better-together` 频道，并告诉我们你想参与什么任务！
+如果你想参与其中，请加入我们的 [**Hugging Face Discord**](http://hf.co/join/discord) 中的 `#data-is-better-together` 频道，并告诉我们你想参与什么任务！
 
 我们期待与大家一起构建更好的数据集！
 
