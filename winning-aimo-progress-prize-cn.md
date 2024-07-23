@@ -201,7 +201,7 @@ authors:
 为了指导模型选择，我们使用了四个内部验证集来衡量模型在不同难度的数学题上的性能。为了避免基础模型中潜在的数据污染，我们从 AMC12（2022、2023）和 AIME（2022、2023、2024）中选择题目以创建两个内部验证数据集：
 
 - **AMC（83 道题）：** 我们选择了 [**AMC12**](https://artofproblemsolving.com/wiki/index.php/AMC_12_Problems_and_Solutions) 22、AMC12 23 的所有题目，并保留了那些结果为整数的题目。最终生成的数据集包含 83 道题。该验证集旨在模拟 Kaggle 上的私有测试集，因为我们从竞赛描述中知道题目难度大于等于这个级别。我们发现我们的模型可以解答大约 60-65% 的题目。为了测量波动，每次评估时，我们使用 5-10 个不同的种子，使用我们的 SC-TIR 算法通常会看到大约 1-3% 的波动。
-- **AIME（90 道题）：** 我们选择了 [**AIME 22**](https://artofproblemsolving.com/wiki/index.php/2022_AIME_I)、[**AIME 23**](https://artofproblemsolving.com/wiki/index.php/2023_AIME_I_Problems) 以及 [**AIME 24**](https://artofproblemsolving.com/wiki/index.php/2024_AIME_I) 的所有题目来度量我们模型解决难题的表现如何，并衡量最常见的错误模式。同上，每次评估，我们使用 5-10 个种子进行以测量波动。
+- **AIME（90 道题）：** 我们选择了 [**AIME 22**](https://artofproblemsolving.com/wiki/index.php/2022_AIME_I)、[**AIME 23**](https://artofproblemsolving.com/wiki/index.php/2023_AIME_I_Problems) 以及 [**AIME 24**](https://artofproblemsolving.com/wiki/index.php/2024_AIME_I) 的所有题目来度量我们模型解决难题的表现如何，并观测最常见的错误模式。同上，每次评估，我们使用 5-10 个种子进行以测量波动。
 
 由于 AMC/AIME 验证集规模较小，与公开排行榜类似，这些数据集上的模型性能容易受噪声的影响。为了更好地评估模型的性能，我们还使用 MATH 测试集的子集（含 5,000 道题）对其进行了评估。我们仅保留答案为整数的题目，以简化多数投票并模拟奥赛评估。因此，我们又多了两个验证集：
 
