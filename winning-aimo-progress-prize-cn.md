@@ -43,7 +43,7 @@ authors:
   - [通过自一致性工具整合推理 (SC-TIR) 来抑制高波动](#通过自一致性工具整合推理-sc-tir-来抑制高波动)
     - [避免过拟合诅咒](#避免过拟合诅咒)
   - [我们尝试过的其他点子](#我们尝试过的其他点子)
-  - [Numina 的未来 - 寻求贡献者和合作伙伴！](#numina-的未来---寻求贡献者和合作伙伴)
+  - [Numina 的未来 - 征寻贡献者和合作伙伴！](#numina-的未来---征寻贡献者和合作伙伴)
   - [致谢](#致谢)
 
 ## Numina 简介 - 开放的 AI For Math 计划
@@ -243,7 +243,7 @@ KTO 的一个很好的功能是，你可以在训练期间跟踪隐式奖励，�
 
 各种模型合并技术，例如 [**DARE**](https://arxiv.org/abs/2311.03099)、[**TIES**](https://arxiv.org/abs/2306.01708) 以及 [**WARP**](https://arxiv.org/abs/2406.16768v1)。这里我们使用 [**mergekit**](https://github.com/arcee-ai/mergekit) 来合并 SFT 和 KTO 模型，或者将 SFT 模型与公开的 `DeepSeekMath` 模型合并。总的来说，我们发现这些合并导致我们的内部评估出现重大倒退，并且我们没有时间对此进行更深入探索。
 
-## Numina 的未来 - 寻求贡献者和合作伙伴！
+## Numina 的未来 - 征寻贡献者和合作伙伴！
 
 继 Numina 初步成功赢得 AIMO 2024 进步奖之后，我们的目标变得更为宏大，即肩负促进数学领域人工智能和人类智能发展的使命。你可以访问我们的网站，了解有关我们项目的更多信息，请随时通过 [**contact@projectnumina.ai**](mailto:contact@projectnumina.ai) 给我们留言。
 
