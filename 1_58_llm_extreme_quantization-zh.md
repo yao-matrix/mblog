@@ -584,7 +584,7 @@ lambda 的急剧增加导致第 500 步左右不稳定，且并未解决第一�
 
 <figure style="text-align: center;">
   <img src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/blog/1.58llm_extreme_quantization/metrics_100B_table.png" alt="Metrics comparison with Llama models for the model trained on 100B tokens" style="width: 100%;"/>
-  <figcaption>在 100B 词元上训练的模型与 Llama 模型的指标比较 </figcaption>
+  <figcaption>在 100B 词元上训练的模型与 Llama 模型的指标比较</figcaption>
 </figure>
 
 要复现这些结果，你可以参阅此 [PR](https://github.com/huggingface/nanotron/pull/174) 以将模型转换为 nanotron 格式，然后对权重进行解包（见函数 [unpack_weights](https://gist.github.com/MekkCyber/78c1532e8767e8da0588b778faf61866)），最后使用 lighteval 进行评估。
