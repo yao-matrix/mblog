@@ -70,5 +70,36 @@ update `examples/ipex_bert.yaml` as below to benchmark `WhereIsAI/UAE-Large-V1`.
 
 ### LLM Text Generation
 
-We use `tgi` to benchmark `meta-llama/Meta-Llama-3-8B1`
+We use `optimum-benchmark` to benchmark `meta-llama/Meta-Llama-3-8B` embedding model across batch size 1 to 64, to compare the performance of C4 and N2 instance.
 
+##### set config
+update `examples/ipex_llama.yaml` as below to benchmark `meta-llama/Meta-Llama-3-8B`. change numa binding to `0,1` because GCP C4 and N2 has 2 numa domains per socket, you can double check with `lscpu`. 
+
+```
+--- a/examples/ipex_llama.yaml
++++ b/examples/ipex_llama.yaml
+@@ -11,8 +11,8 @@ name: ipex_llama
+ launcher:
+   numactl: true
+   numactl_kwargs:
+-    cpunodebind: 0
+-    membind: 0
++    cpunodebind: 0,1
++    membind: 0,1
+ 
+ scenario:
+   latency: true
+@@ -34,4 +34,4 @@ backend:
+   export: true
+   no_weights: false
+   torch_dtype: bfloat16
+-  model: TinyLlama/TinyLlama-1.1B-Chat-v1.0
++  model: meta-llama/Meta-Llama-3-8B
+```
+
+##### run benchmark
+`$ optimum-benchmark --config-dir examples/ --config-name ipex_llama`
+
+##### results
+We can see c4 has 5.4x prefill latency improvement than n2, benefiting from AMX and memory bandwidth improvement. And for throughput driven batch size as 64, We can get 4.3x boost in decoding throughput.
+![alt text](image-4.png)
