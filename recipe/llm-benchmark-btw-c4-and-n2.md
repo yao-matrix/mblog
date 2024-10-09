@@ -70,7 +70,7 @@ update `examples/ipex_bert.yaml` as below to benchmark `WhereIsAI/UAE-Large-V1`.
 
 ### LLM Text Generation
 
-We use `optimum-benchmark` to benchmark `meta-llama/Meta-Llama-3-8B` embedding model across batch size 1 to 64, to compare the performance of C4 and N2 instance.
+We use `optimum-benchmark` to benchmark `meta-llama/Meta-Llama-3-8B` LM across batch size 1 to 64, to compare the performance of C4 and N2 instance.
 
 ##### set config
 update `examples/ipex_llama.yaml` as below to benchmark `meta-llama/Meta-Llama-3-8B`. change numa binding to `0,1` because GCP C4 and N2 has 2 numa domains per socket, you can double check with `lscpu`. 
