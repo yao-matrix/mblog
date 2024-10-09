@@ -8,15 +8,15 @@
 3. Configure `OS and storage` tab as below:
    ![alt text](image-1.png)
 4. Keep other configurations as default
-5. Cleck `CREATE` button, then you'll have a C4 instance
+5. Press `CREATE` button, then you'll have a C4 instance
 
 ### N2
 1. pick N2 in `Machine configuration` tab, and specify `Machine type` as `n2-standard-96` which coresponding to one socket. And you need set `CPU platform` as below:
     ![alt text](image-2.png)
 1. Configure `OS and storage` tab as below:
    ![alt text](image-1.png)
-2. Keep other configurations as default
-3. Cleck `CREATE` button, then you'll have a C4 instance
+2. keep other configurations as default
+3. press `CREATE` button, then you'll have a C4 instance
 
 ## Benchamrk
 ### Text Embedding
