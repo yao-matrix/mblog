@@ -175,7 +175,8 @@ PMF 并不能保证你能够取代科技巨头，但缺乏 PMF 则保证你无�
 
 多分派可以帮助你编写运行速度快的通用代码。而因为有了社区，如果你在任何地方公开宣布 Julia 运行缓慢，就会有一个 Julia 社区成员重写你的整个代码库，并纠正你的说法。
 
-## Historical Fiction
+## 无史可鉴
+
 > 历史是从最擅长讲故事的人的角度讲述的。
 
 ![alt text](assets/the-rise-of-huggingface/14.png)
@@ -186,7 +187,7 @@ PMF 并不能保证你能够取代科技巨头，但缺乏 PMF 则保证你无�
 
 ![alt text](assets/the-rise-of-huggingface/15.png)
 
-17 世纪持续 6 个月之久的郁金香狂热把我们吓怕了，使我们无法认识到范式转变何时发生。
+17 世纪持续 6 个月之久的郁金香狂热把我们吓怕了，当真正的范式转变发生时，我们却认识不到。
 
 ![alt text](assets/the-rise-of-huggingface/16.png)
 
