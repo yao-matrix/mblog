@@ -170,9 +170,9 @@ def find_majority_answer(answers: List[str]) -> str:
 
 - **加权拔萃：** 对所有相同答案的分数进行累加，再选择总分最高的答案。这种方法奖励重复出现的答案，从而提高高质量答案的优先级。从数学上讲，答案 $a$ 的加权得分如下：
 
-  $$a_\mathrm{weighted} = \arg\max_{a} \sum_{i=1}^{N} \mathbb{I}(s_i = a) \cdot \mathrm{RM}(p, s_i) \,$$
+  $$a_\mathrm{weighted} = \arg\max_{a} \sum_{i=1}^{N} \mathbb{I}(a_i = a) \cdot \mathrm{RM}(p, s_i) \,$$
 
-  其中 $RM(p,s_i)$ 是问题 $p$ 的第 $i$ 个候选解 $s_i$ 的奖励模型得分。
+  其中 $RM(p,s_i)$ 是问题 $p$ 的第 $i$ 个候选解 $s_i$ 的奖励模型得分，而 $a_i$ 指的是拔萃后的最终解，一般从 <code>\boxed{answer}</code> 中获得。
 
 通常，人们使用结果奖励模型 (ORM，outcome reward model) 来获得某个解的分数。但为了与稍后讨论的其他搜索策略进行公平比较，我们使用相同的 PRM 对拔萃法的解进行评分。如下图所示，PRM 为每个解按步骤生成一个累积的分数序列，因此我们需要对步骤进行归约以获得整个解的得分：
 
