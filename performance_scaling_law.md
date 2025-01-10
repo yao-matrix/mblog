@@ -2,7 +2,7 @@
 
 并行优化有两个 scaling laws 指导优化的界。
 
-## `Amdahl's Law`
+## `Amdahl's Law（阿姆达尔定律）`
 
 `Amdahl's Law` 又叫 `strong scaling law`。
 
@@ -11,7 +11,6 @@
 > For a given workload in single node, the theoretical speedup of the latency of the workload, is constricted both by the number of processors executing and the serial proportion of the workload.
 > 
 > ![Alt text](assets/performance-scaling-law/image-0.png)
->  
 
 阿姆达尔定律解决的问题是：**给定工作负载，优化其性能**。即，关注于把给定的任务做好。
  
@@ -43,7 +42,7 @@
 
 古斯塔夫森定律解决的问题是：**做什么事情才能体现系统的能力**。即，关注于做正确的事。
 
-它把一个可在 $n$ 个 *node* 里运行的大规模工作负载的 latency 设为 $1$，其中可并行部分的 latency 为 $p$, 非可并行部分 latency 为 $1-p$。
+它把一个可在 $n$ 个 *node* 里运行的大规模工作负载的 latency 设为 $1$，其中可并行部分的 latency 为 $p$，非可并行部分 latency 为 $1-p$。
 
 那么，如果使用 $1$ 个 *node* 去运行这个工作负载，可并行部分所需要的 latency 会变为 $np$，非可并行部分 latency 仍为 $1-p$，总 latency 为 $(1-p)+pn$。
 
