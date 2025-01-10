@@ -4,7 +4,7 @@
 
 ![典型计算机系统示例图|center](assets/inter-connectivity/image-0.png)
 
-在该系统中，互联（interconnect）连接着控制设备、运算设备、内存设备以及 IO 设备，承担着传送带的职责。因此，它的带宽和延时决定了 communication 的效率。本文主要讨论带宽。
+在该系统中，互联（interconnect）连接着运算设备、内存设备以及 IO 设备，承担着传送带的职责。因此，它的带宽和延时决定了 communication 的效率。本文主要讨论带宽。
 
 首先亮出带宽（Bandwidth, BW）计算公式，其单位为 `GB/s（Giga Bytes per second）`，如下：
 
