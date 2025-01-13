@@ -52,7 +52,7 @@ rank2: Assertion failure at psm3/ptl_am/ptl.c:196: nbytes == req->req_data.recv_
 
     那就是 CMA 出了啥问题。以上只是猜想，猜想只是起点，总是要实证。既然 oneCCL 是集合通信后端，我们就要分析一下它。从[这儿](https://oneapi-src.github.io/oneCCL/env-variables.html)可以知道：oneCCL 有两个 transport 后端， 即 OFI 和 MPI。从[这儿](https://www.intel.com/content/www/us/en/developer/articles/technical/mpi-library-2019-over-libfabric.html)又可以知道，intel MPI 的实现现在也基于 OFI 了，而 OFI 的实现是 libfabric，如下：
 
-	![Alt text|center|300x0](./1715322690592.png)
+	![Alt text|center|300x0](assets/xpu-fsdp-assert-out-debug/image-1.png)
 
     那么我们就去 [libfabric 的代码库](https://github.com/ofiwg/libfabric)中找找有没有以下 log 相关的代码：
 
