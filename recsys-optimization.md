@@ -326,3 +326,5 @@ Facebook proposed DeepRecSched to search good deployment configurations with dry
 20. [Deep Learning: It’s Not All About Recognizing Cats and Dogs](https://ece.princeton.edu/events/deep-learning-its-not-all-about-recognizing-cats-and-dogs)
 21. [深度学习推理性能优化](https://zhuanlan.zhihu.com/p/18014735226)
 22. [Recommendation Systems Algorithms,Challenges,Metrics, and Business Opportunities](https://www.mdpi.com/2076-3417/10/21/7748/pdf)
+
+*写于 2021 年 7 月*

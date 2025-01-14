@@ -21,9 +21,9 @@
     > `required_T(FL)OPS = (MACs_per_forward_pass) * (2 (FL)OPs / MAC) * 3 * (number_of_examples_per_second)`
     >
     > 这里 `3` 指的是 `1` 个前向加 `2` 个后向（data bp，weights bp）
-
-    再由实测性能数据：
-
+    >
+    > 再由实测性能数据：
+    >
     > | accelerator | data type | bs | IPS |
     > |  ----  | ----  |  ----  | ----  |
     > | V100 | FP16 | 256 | 1325 |
@@ -31,7 +31,7 @@
     <!--  > | MLU290 M5 | FP16 | 256 | 892 |
     > | MLU290 M5 | FP32 | 256 | 572 | -->
     >
-    > 以 V100 FP16 训练为例，有：
+    > 以 `V100 FP16` 训练为例，有：
     >
     > `MACs per forward pass = 4.112G`
     >
@@ -40,6 +40,7 @@
     > `required_(FL)OPS = 4.112G * 2 * 3 * 1325 = 32.69T`
     >
     > 汇总结果为：
+    >
     >  | accelerator | data type | bs | IPS | required T(FL)OPS |
     > |  ----  | ----  |  ----  | ----  |  ----  | 
     > | V100 | FP16 | 256 | 1325 | 32.69 |
@@ -58,7 +59,7 @@
 	  > | V100 | FP16 | 256 | 1325 | 32.69 | 29.2% |
 	  > | V100 | FP32 | 128 | 303.1 | 7.478 | 53% | 
 	  <!-- | MLU290 M5 | FP16 | 256 | 892 | 22.007 | 34.4% |
-	  | MLU290 M5 | FP32 | 256 | 572 | 14.112 | 22% | **MLU290 M5 peak ratio估算以INT31理论算力为base -->
+	  | MLU290 M5 | FP32 | 256 | 572 | 14.112 | 22% | **MLU290 M5 peak ratio 估算以 INT31 理论算力为 base -->
 
 ## References
 1. [NV Training Performance Benchmark](https://developer.nvidia.com/deep-learning-performance-training-inference)
