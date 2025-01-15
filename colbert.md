@@ -1,21 +1,25 @@
 # ColBERT
 
 ## Evaluation Metrics for NLP based IR and QA
+
 ### Order-Unaware Metrics
-#### Recall@K
+
+#### `Recall@K`
 
 $$ Recall@K = \frac{\# \ of\ passages\ @K\ that\ are\ relevant}{total\ \# \ of\ relevant\ passages} $$
 
 ### Order-Aware Metrics
 
-#### MRR@K
+#### `MRR@K`
 
 MRR means Mean Reciprocal Rank.
 
 $$MRR = \frac{1}{|Q|}\sum_{i=1}^{|Q|}\frac{1}{rank_{i}}$$
 
 where:
+
 $|Q|$ denotes the total number of queries;
+
 $rank_{i}$ denotes the rank of the first relevant result;
 
 ## Fundamental Concepts
@@ -25,6 +29,7 @@ $rank_{i}$ denotes the rank of the first relevant result;
 They are both embedding, which means we use a low-dimension vector to represent a word. We call the embedding is **static** in the sense that it will not change with the context *once been learned*; while **dynamic** or **contextualized** embedding represents a word among its contexts.
 
 > **Example**
+> 
 > In two sentences: “Apple sells phones” and “I eat an apple”, **dynamic embeddings** will represent “apple” differently according to the contexts, while **static embedding** can not distinguish the semantic difference between two “apples”. 
 
 ## Algorithm Evolution
@@ -32,6 +37,7 @@ They are both embedding, which means we use a low-dimension vector to represent 
 ### ColBERT-v1
 
 #### Info Card
+
 > - **full name**
 >  `Co`ntextualized `l`ate interaction over `BERT`
 > - **paper**
@@ -44,12 +50,14 @@ They are both embedding, which means we use a low-dimension vector to represent 
 > https://github.com/stanford-futuredata/ColBERT
 
 #### Basic Idea
+
 Trade-off between Effectiveness and Efficiency. ColBERT is in the center of below compromise matrix.
 
 ![Alt text|center](assets/colbert/image-0.png)
 
 - The Most Effective, but Least Efficiency
-Fully dynamic in both **representation** and **interaction** between every word of query and document.
+
+    Fully dynamic in both **representation** and **interaction** between every word of query and document.
 	- All-to-All Dynamic Representation, All-to-All Interaction (cross-encoder)
 
         ![All-to-All Interaction|center](assets/colbert/image-1.png)
@@ -63,11 +71,12 @@ Fully dynamic in both **representation** and **interaction** between every word 
 	- **Intra-Passage Dynamic Representation, Query-Document Interaction** (multi-encoder)
 
     	![ColBERT|center](assets/colbert/image-4.png)
+
 - The Comparison
 
-ColBERT attains similar MRR w/ BERT while `10~100x` better latency.
+    ColBERT attains similar MRR w/ BERT while `10~100x` better latency.
 
-![Alt text|center](assets/colbert/image-5.png)
+    ![Alt text|center](assets/colbert/image-5.png)
 
 #### How Does It Work?
 
@@ -108,20 +117,22 @@ Yet, we need to pay attention to the recall of the sparse retriever, once true c
 
 ##### Re-ranking
 
-Greatly better latency than all-to-all models, greatly better MRR than static models and no-interaction models.
+Greatly better latency than all-to-all models, greatly better `MRR` than static models and no-interaction models.
 
 ![Alt text|center](assets/colbert/image-9.png)
 
 ##### E2E
 
-Good MRR and Recall lifting, at the expense of latency increase.
+Good `MRR` and `Recall` lifting, at the expense of latency increase.
 
 Another interesting observation: While to `Recall@1000`, we can see that ColBERT re-ranker's recall is bounded by its precedent BM25 retriever, it can only get to `81.4%` which is `BM25`'S `recall@1000`, even we can see ColBERT retriever can get `96.8%` which is much better.
 
-![Alt text|center](./1657159145799.png)
+![Alt text|center](assets/colbert/image-10.png)
 
 ### ColBERT-v2
+
 #### Info Card
+
 > - **paper**
 > [ColBERTv2: Effective and Efficient Retrieval via Lightweight Late Interaction](https://arxiv.org/pdf/2112.01488.pdf)
 > - **year**
@@ -134,8 +145,6 @@ Another interesting observation: While to `Recall@1000`, we can see that ColBERT
 #### Basic Idea
 ColBERT-v2 is an end-2-end retriever.
 
-### PLAID
-TBF
 ## References
 1. [Evaluation Metrics For Information Retrieval](https://amitness.com/2020/08/information-retrieval-evaluation/)
 2. [Introduction to Information Retrieval: Evaluation](https://web.stanford.edu/class/cs276/handouts/EvaluationNew-handout-1-per.pdf)
